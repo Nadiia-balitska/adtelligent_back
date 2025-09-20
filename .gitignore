@@ -2,3 +2,9 @@
 /dist
 /examples
 /src/generated/prisma
+.env
+.env.test
+.DS_Store
+.vscode
+.idea
+npm-debug.log*

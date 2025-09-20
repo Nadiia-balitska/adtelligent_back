@@ -6,6 +6,7 @@ exports.EnvSchema = {
     properties: {
         PORT: { type: 'number' },
         HOST: { type: 'string' },
+        FEED_DEFAULT_URL: { type: 'string', nullable: true },
     },
     required: ['PORT', 'HOST'],
     additionalProperties: false,

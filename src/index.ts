@@ -1,9 +1,17 @@
 import buildApp from "./app";
 
 async function start() {
-    const fastify = await buildApp({
-        logger: true,
-    })
+  const isProd = process.env.NODE_ENV === "production";
+    
+    const fastify = await buildApp({logger: isProd
+      ? true
+      : {
+          transport: {
+            target: "pino-pretty",
+            options: { colorize: true, singleLine: true, translateTime: "HH:MM:ss" },
+          },
+        },
+    trustProxy: true})
 
     const port = fastify.config.PORT
     const host = fastify.config.HOST
