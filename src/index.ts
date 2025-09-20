@@ -1,32 +1,21 @@
-import Fastify  from 'fastify';
-import { buildApp } from '../app'; 
-
-const app=Fastify();
-app.get('/',async()=>{
-  'hello world'
-})
-app.listen({port:3000},(err,address)=>{
-  if(err){
-    console.error(err);
-    process.exit(1);
-  }
-  console.log(`Server listening at ${address}`);
-})  
+import buildApp from "./app";
 
 async function start() {
+    const fastify = await buildApp({
+        logger: true,
+    })
 
-const fastify = buildApp();
-const port: number =Number(fastify.config.PORT) || 3000;
-const host:any = fastify.config.HOST;
+    const port = fastify.config.PORT
+    const host = fastify.config.HOST
 
-fastify.listen({ port, host }, (err: Error | null, address: string) => {    
-  if (err) {
-    console.error(err);
-    process.exit(1);  
+    fastify.listen({port, host}, (err, address) => {
+        if(err){
+            console.log(err)
+            process.exit(1)
+        }
+        console.log(`Server running at ${address}`)
+    })
 
-  }
-  console.log(`Server listening at ${address}`);
-});
 }
 
-void start();
+void start()

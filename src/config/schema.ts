@@ -1,4 +1,4 @@
-import { FromSchema } from "json-schema-to-ts";
+import {FromSchema} from "json-schema-to-ts";
 
 export const EnvSchema = {
     type: 'object',
