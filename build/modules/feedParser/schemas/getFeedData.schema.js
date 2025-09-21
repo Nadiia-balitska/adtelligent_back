@@ -9,7 +9,7 @@ exports.schema = {
         type: "object",
         properties: {
             url: { type: "string", format: "uri", nullable: true },
-            force: { type: "boolean", default: false },
+            force: { type: "integer", enum: [0, 1], default: 0 },
         },
         additionalProperties: false,
     },

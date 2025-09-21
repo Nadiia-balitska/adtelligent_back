@@ -2,7 +2,6 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
-import healthPlugin from "./plugins/health.plugin";
 export type AppOptions = Partial<FastifyServerOptions>
 
 async function buildApp(options: AppOptions = {}){
@@ -43,7 +42,6 @@ const fastify = Fastify({logger: isProd
     
   fastify.get("/health/server", async () => ({ status: "ok" }));
 
-  await fastify.register(healthPlugin, { prefix: "/health" });
 
 
   await fastify.register(AutoLoad, 

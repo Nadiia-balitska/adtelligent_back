@@ -2,15 +2,15 @@ import fp from "fastify-plugin";
 import type { FastifyPluginAsync } from "fastify";
 
 const healthPlugin: FastifyPluginAsync = async (fastify) => {
-  fastify.get("/", async (req, reply) => {
+  fastify.get("/health", async (req, reply) => {
     const status = {
       prisma: "unknown" as "ok" | "down" | "unknown",
     };
 
     try {
       if (fastify.prisma) {
-        await fastify.prisma.$executeRaw`SELECT 1`;
-        status.prisma = "ok";
+     const res = await fastify.prisma.$runCommandRaw({ ping: 1 }) as { ok?: number };
+if (res?.ok !== 1) throw new Error("Mongo ping failed");
       }
     } catch (err) {
       status.prisma = "down";
@@ -23,10 +23,10 @@ const healthPlugin: FastifyPluginAsync = async (fastify) => {
     return { status: overallOk ? "ok" : "down", ...status };
   });
 
-  fastify.get("/db", async (req, reply) => {
+  fastify.get("/health/db", async (req, reply) => {
     try {
-      if (fastify.prisma) await fastify.prisma.$executeRaw`SELECT 1`;
-      return { status: "ok" };
+    const res = await fastify.prisma.$runCommandRaw({ ping: 1 }) as { ok?: number };
+if (res?.ok !== 1) throw new Error("Mongo ping failed");
     } catch (err) {
       fastify.log.error({ err }, "DB health failed");
       reply.code(500);

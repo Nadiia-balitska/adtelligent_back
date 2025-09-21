@@ -1,29 +1,30 @@
-import type { Collection } from "mongodb";
+import type { PrismaClient } from "@prisma/client";
 import type { ParsedFeed } from "./parseFeed.service";
 
-export type FeedDoc = ParsedFeed & { _id?: any };
+export type FeedDoc = ParsedFeed & { id?: any }; 
 
-export function createFeedRepo(coll: Collection<FeedDoc>) {
+export function createFeedRepo(prisma: PrismaClient) {
   async function findByUrl(url: string): Promise<FeedDoc | null> {
-    return coll.findOne({ url });
+    const doc = await prisma.feed.findUnique({ where: { url } });
+    return (doc as unknown) as FeedDoc | null;
   }
 
   async function upsert(feed: ParsedFeed): Promise<void> {
-    await coll.updateOne(
-      { url: feed.url },
-      {
-        $set: {
-          title: feed.title,
-          items: feed.items,
-          fetchedAt: feed.fetchedAt,
-        },
+    await prisma.feed.upsert({
+      where: { url: feed.url },
+      update: {
+        title: feed.title ?? null,
+        items: feed.items as any,  
+        fetchedAt: feed.fetchedAt,
       },
-      { upsert: true }
-    );
+      create: {
+        url: feed.url,
+        title: feed.title ?? null,
+        items: feed.items as any,
+        fetchedAt: feed.fetchedAt,
+      },
+    });
   }
 
-  return {
-    findByUrl,
-    upsert,
-  };
+  return { findByUrl, upsert };
 }
