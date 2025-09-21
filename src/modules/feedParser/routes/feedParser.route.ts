@@ -1,12 +1,10 @@
-// src/modules/feedParser/routes/feedParser.route.ts
 import type { FastifyInstance } from "fastify";
 import { schema, GetFeedQuery, GetFeedReply } from "../schemas/getFeedData.schema";
 import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
-import { parseFeed } from "../services/parseFeed.service";       
-import { FeedRepo } from "../services/feedRepo.service";          
+import { parseFeed } from "../services/parseFeed.service";
+import { FeedRepo } from "../services/feedRepo.service";
 
-const DEFAULT_URL = "https://www.pravda.com.ua/rss/view_news/";
-
+const FEED_DEFAULT_URL = process.env.FEED_DEFAULT_URL || "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml";
 export async function getFeedDataRoutes(fastify: FastifyInstance) {
   const route = fastify.withTypeProvider<JsonSchemaToTsProvider>();
 
@@ -14,8 +12,9 @@ export async function getFeedDataRoutes(fastify: FastifyInstance) {
     "/feed",
     { schema },
     async (req, reply) => {
-      const url = req.query.url ?? DEFAULT_URL;
-      const force = Boolean(req.query.force);
+      const { url, force } = req.query;          
+      const feedUrl = url ?? FEED_DEFAULT_URL;
+      const isForce = force === 1;
 
       const repo = new FeedRepo(fastify.mongo.feeds);
 
@@ -35,18 +34,18 @@ export async function getFeedDataRoutes(fastify: FastifyInstance) {
         })),
       });
 
-      if (force) {
-        const parsed = await parseFeed(url);
+      if (isForce) {
+        const parsed = await parseFeed(feedUrl);
         await repo.upsert(parsed);
         return reply.send(toReply(parsed));
       }
 
-      const cached = await repo.findByUrl(url);
+      const cached = await repo.findByUrl(feedUrl);
       if (cached) {
         return reply.send(toReply(cached));
       }
 
-      const parsed = await parseFeed(url);
+      const parsed = await parseFeed(feedUrl);
       await repo.upsert(parsed);
       return reply.send(toReply(parsed));
     },

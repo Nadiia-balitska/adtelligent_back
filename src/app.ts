@@ -2,13 +2,15 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
+import healthPlugin from "./plugins/health.plugin";
 export type AppOptions = Partial<FastifyServerOptions>
 
 async function buildApp(options: AppOptions = {}){
 
-  const isProd = process.env.NODE_ENV === "production";
 
-  const fastify = Fastify({logger: isProd
+const isProd = process.env.NODE_ENV === "production";
+
+const fastify = Fastify({logger: isProd
       ? true
       : {
           transport: {
@@ -26,9 +28,10 @@ async function buildApp(options: AppOptions = {}){
         });
 
         fastify.log.info("Starting to load plugins");
+
         await fastify.register(AutoLoad, {
             dir: join(__dirname, "plugins"),
-            options: options,
+            options,
             ignorePattern: /^((?!plugin).)*$/,
         });
 
@@ -37,36 +40,20 @@ async function buildApp(options: AppOptions = {}){
         fastify.log.error("Error in autoload:", error);
         throw error;
     }
+    
+  fastify.get("/health/server", async () => ({ status: "ok" }));
 
-await fastify.register(AutoLoad, {
-    dir: join(__dirname, "routes"),
+  await fastify.register(healthPlugin, { prefix: "/health" });
+
+
+  await fastify.register(AutoLoad, 
+    { dir: join(__dirname, "routes"),
     options,
     dirNameRoutePrefix: false, 
+    ignorePattern: /^((?!route).)*$/ 
   });
 
-    fastify.get("/", async (request, reply) => {
-        return {hello: "world"}
-    })
 
-    // fastify.register(getFeedDataRoutes) // я винесла в інший файл routes/feed.ts
-
-    fastify.get("/health/server", async () => ({ status: "ok" }));
- 
-    
-  fastify.get("/health/db", async (req, reply) => {
-    try {
-      if (fastify.prisma?.$queryRaw) {
-        await fastify.prisma.$queryRaw`SELECT 1`;
-         await fastify.mongo.client.db().command({ ping: 1 });
-        return { status: "ok" };
-      }
-      return { status: "unknown" };
-    } catch (err) {
-      fastify.log.error({ err }, "DB health failed");
-      reply.code(500);
-      return { status: "down" };
-    }
-  });
 
   fastify.setErrorHandler((err, _req, reply) => {
     fastify.log.error({ err }, "Unhandled error");

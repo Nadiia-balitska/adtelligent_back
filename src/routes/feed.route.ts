@@ -4,8 +4,8 @@
 import type { FastifyPluginAsync } from "fastify";
 import { getFeedDataRoutes } from "../modules/feedParser/routes/feedParser.route";
 
-const routes: FastifyPluginAsync = async (app) => {
-  await app.register(getFeedDataRoutes, { prefix: "/api" });
+const routes: FastifyPluginAsync = async (fastify) => {
+  await fastify.register(getFeedDataRoutes, { prefix: "/api" });
 };
 
 export default routes;

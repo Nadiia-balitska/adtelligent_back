@@ -5,12 +5,12 @@ export const EnvSchema = {
     properties: {
         PORT: {type: 'number'},
         HOST: {type: 'string'},
-        FEED_DEFAULT_URL:{type: 'string', nullable: true},
-        MONGODB_URI: {type: 'string'},
+        FEED_DEFAULT_URL:{type: 'string',format: "uri", nullable: true},
+        MONGODB_URI: {type: "string", format: "uri" },
         MONGODB_DB: {type: 'string'},
         FEEDS_COLLECTION: {type: 'string'},
     },
-    required: ['PORT', 'HOST'],
+    required: ['PORT', 'HOST', "MONGODB_URI"],
     additionalProperties: false,
 } as const;
 
