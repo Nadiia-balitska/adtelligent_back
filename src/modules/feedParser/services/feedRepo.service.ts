@@ -3,15 +3,13 @@ import type { ParsedFeed } from "./parseFeed.service";
 
 export type FeedDoc = ParsedFeed & { _id?: any };
 
-export class FeedRepo {
-  constructor(private coll: Collection<FeedDoc>) {}
-
-  async findByUrl(url: string): Promise<FeedDoc | null> {
-    return this.coll.findOne({ url });
+export function createFeedRepo(coll: Collection<FeedDoc>) {
+  async function findByUrl(url: string): Promise<FeedDoc | null> {
+    return coll.findOne({ url });
   }
 
-  async upsert(feed: ParsedFeed): Promise<void> {
-    await this.coll.updateOne(
+  async function upsert(feed: ParsedFeed): Promise<void> {
+    await coll.updateOne(
       { url: feed.url },
       {
         $set: {
@@ -20,7 +18,12 @@ export class FeedRepo {
           fetchedAt: feed.fetchedAt,
         },
       },
-      { upsert: true },
+      { upsert: true }
     );
   }
+
+  return {
+    findByUrl,
+    upsert,
+  };
 }

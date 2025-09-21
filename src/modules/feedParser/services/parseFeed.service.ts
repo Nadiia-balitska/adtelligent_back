@@ -18,6 +18,7 @@ export type ParsedFeed = {
   fetchedAt: Date;
 };
 
+
 export async function parseFeed(url: string): Promise<ParsedFeed> {
   const feed = await retry(
     async () => parser.parseURL(url),
