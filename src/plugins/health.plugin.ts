@@ -5,7 +5,6 @@ const healthPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.get("/", async (req, reply) => {
     const status = {
       prisma: "unknown" as "ok" | "down" | "unknown",
-      mongo:  "unknown" as "ok" | "down" | "unknown",
     };
 
     try {
@@ -18,17 +17,8 @@ const healthPlugin: FastifyPluginAsync = async (fastify) => {
       fastify.log.error({ err }, "Prisma health failed");
     }
 
-    try {
-      if (fastify.mongo) {
-        await fastify.mongo.client.db().command({ ping: 1 });
-        status.mongo = "ok";
-      }
-    } catch (err) {
-      status.mongo = "down";
-      fastify.log.error({ err }, "Mongo health failed");
-    }
-
-    const overallOk = status.prisma === "ok" && status.mongo === "ok";
+ 
+    const overallOk = status.prisma === "ok" ;
     if (!overallOk) reply.code(500);
     return { status: overallOk ? "ok" : "down", ...status };
   });
@@ -36,7 +26,6 @@ const healthPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.get("/db", async (req, reply) => {
     try {
       if (fastify.prisma) await fastify.prisma.$executeRaw`SELECT 1`;
-      if (fastify.mongo)  await fastify.mongo.client.db().command({ ping: 1 });
       return { status: "ok" };
     } catch (err) {
       fastify.log.error({ err }, "DB health failed");
