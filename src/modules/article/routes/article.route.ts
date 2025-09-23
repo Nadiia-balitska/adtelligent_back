@@ -39,3 +39,24 @@ export default async function articleRoutes(fastify: FastifyInstance) {
     }
   );
 }
+
+
+// //це на фронт 
+// // реєстрація
+// const reg = await fetch("/api/auth/register", {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify({ email: "me@example.com", password: "secret123" })
+// }).then(r => r.json());
+
+// // логін
+// const { token } = await fetch("/api/auth/login", {
+//   method: "POST",
+//   headers: { "Content-Type": "application/json" },
+//   body: JSON.stringify({ email: "me@example.com", password: "secret123" })
+// }).then(r => r.json());
+
+// // парсинг статті
+// const art = await fetch(`/api/article?url=${encodeURIComponent("https://example.com/news/123")}`, {
+//   headers: { Authorization: `Bearer ${token}` }
+// }).then(r => r.json());

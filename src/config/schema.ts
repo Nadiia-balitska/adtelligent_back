@@ -10,6 +10,7 @@ export const EnvSchema = {
         MONGODB_DB: {type: 'string'},
         FEEDS_COLLECTION: {type: 'string'},
         JWT_SECRET: { type: "string", minLength: 16 },
+        FRONTEND_URL: { type: "string", format: "uri", nullable: true },
     },
     required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET"],
     additionalProperties: false,
