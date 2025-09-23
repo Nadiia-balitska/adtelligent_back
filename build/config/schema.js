@@ -10,7 +10,8 @@ exports.EnvSchema = {
         MONGODB_URI: { type: "string", format: "uri" },
         MONGODB_DB: { type: 'string' },
         FEEDS_COLLECTION: { type: 'string' },
+        JWT_SECRET: { type: "string", minLength: 16 },
     },
-    required: ['PORT', 'HOST', "MONGODB_URI"],
+    required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET"],
     additionalProperties: false,
 };

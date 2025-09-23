@@ -14,3 +14,10 @@ model Feed {
   items     Json
   fetchedAt DateTime @default(now())
 }
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
