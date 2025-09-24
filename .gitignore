@@ -3,6 +3,8 @@
 /examples
 /src/generated/prisma
 .env
+.env.*
+!.env.example
 .env.test
 .DS_Store
 .vscode
