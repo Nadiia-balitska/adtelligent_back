@@ -6,6 +6,7 @@ export const registerSchema = {
     properties: {
       email: { type: "string", format: "email" },
       password: { type: "string", minLength: 6, maxLength: 72 },
+      name: { type: "string", minLength: 1, maxLength: 80, nullable: true },
     },
     required: ["email", "password"],
     additionalProperties: false,
@@ -19,7 +20,19 @@ export const registerSchema = {
   },
 } as const;
 
-export const loginSchema = registerSchema;
+export const loginSchema = {
+  body: {
+    type: "object",
+    properties: {
+      email: { type: "string", format: "email" },
+      password: { type: "string", minLength: 6, maxLength: 72 },
+    },
+    required: ["email", "password"],
+    additionalProperties: false,
+  },
+  response: registerSchema.response,
+} as const;
+
 
 export type AuthBody = FromSchema<typeof registerSchema.body>;
 export type AuthReply = FromSchema<typeof registerSchema.response[200]>;

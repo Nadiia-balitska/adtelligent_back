@@ -1,36 +1,37 @@
 import type { FastifyInstance } from "fastify";
 import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
-import { registerSchema, loginSchema, type AuthBody, type AuthReply } from "../schemas/auth.schema";
-import argon2 from "argon2";
-import fastifyCookie from "@fastify/cookie";
+import {
+  registerSchema,
+  loginSchema,
+  type AuthBody,          
+  type AuthReply,
+} from "../schemas/auth.schema";
+import { createAuthService } from "../services/auth.service";
+
 const authRoutes = async (fastify: FastifyInstance) => {
-  await fastify.register(fastifyCookie);
   const r = fastify.withTypeProvider<JsonSchemaToTsProvider>();
+  const service = createAuthService(fastify);
 
   r.post<{ Body: AuthBody; Reply: AuthReply }>(
     "/api/auth/register",
     { schema: registerSchema },
     async (req, reply) => {
-      const { email, password } = req.body;
+      try {
+        const { token } = await service.register(req.body);
 
-      const exists = await fastify.prisma.user.findUnique({ where: { email } });
-      if (exists) return reply.code(409).send({ message: "Email already used" } as any);
+        reply.setCookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 7,
+        });
 
-      const hash = await argon2.hash(password);
-
-      const user = await fastify.prisma.user.create({ data: { email, password: hash } });
-
-      const token = fastify.jwt.sign({ sub: user.id, email: user.email });
-
-         reply.setCookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7, 
-      });
-
-      return { token };
+        return { token };
+      } catch (err: any) {
+        reply.code(err?.statusCode ?? 500);
+        return { message: err?.message ?? "Registration failed" } as any;
+      }
     }
   );
 
@@ -38,38 +39,36 @@ const authRoutes = async (fastify: FastifyInstance) => {
     "/api/auth/login",
     { schema: loginSchema },
     async (req, reply) => {
-      const { email, password } = req.body;
+      try {
+        const { token } = await service.login(req.body);
 
-      const user = await fastify.prisma.user.findUnique({ where: { email } });
-      if (!user || !(await argon2.verify(user.password, password))) {
-        return reply.code(401).send({ message: "Invalid credentials" } as any);
+        reply.setCookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 7,
+        });
+
+        return { token };
+      } catch (err: any) {
+        reply.code(err?.statusCode ?? 500);
+        return { message: err?.message ?? "Login failed" } as any;
       }
-
-      const token = fastify.jwt.sign({ sub: user.id, email: user.email });
-
-reply.setCookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return { token };
     }
   );
 
-    r.post("/api/auth/logout", async (_req, reply) => {
+  r.post("/api/auth/logout", async (_req, reply) => {
     reply.clearCookie("token", { path: "/" });
     reply.code(204);
     return null;
   });
 
   r.get("/api/auth/me", { preValidation: [fastify.authenticate] }, async (req) => {
-    const payload = await req.jwtVerify(); 
-    return { id: (payload as any).sub, email: (payload as any).email };
+    const payload = await req.jwtVerify();
+    const { sub, email, name } = payload as any;
+    return { id: sub, email, name: name ?? null };
   });
 };
-
 
 export default authRoutes;
