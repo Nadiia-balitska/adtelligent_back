@@ -5,7 +5,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "dev": "concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"tsc -w\" \"nodemon\""
+    "dev": "concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"tsc -w\" \"nodemon\"",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
   },
   "author": "",
   "license": "ISC",
@@ -28,6 +30,7 @@
     "fastify-plugin": "^5.0.1",
     "git-filter-repo": "^0.0.30",
     "json-schema-to-ts": "^3.1.1",
+    "node-cron": "^4.2.1",
     "rss-parser": "^3.13.0",
     "undici": "^7.16.0"
   },
