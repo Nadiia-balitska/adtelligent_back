@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type { ParsedFeed } from "./parseFeed.service";
 
 export type FeedDoc = ParsedFeed & { id?: any };
@@ -14,13 +14,13 @@ export function createFeedRepo(prisma: PrismaClient) {
       where: { url: feed.url },
       update: {
         title: feed.title ?? null,
-        items: feed.items as any,
+        items: feed.items as Prisma.InputJsonValue,
         fetchedAt: feed.fetchedAt,
       },
       create: {
         url: feed.url,
         title: feed.title ?? null,
-        items: feed.items as any,
+        items: feed.items as Prisma.InputJsonValue,
         fetchedAt: feed.fetchedAt,
       },
     });
