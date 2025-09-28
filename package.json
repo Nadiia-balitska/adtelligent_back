@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node build/index.js",
+    "start": "node build/index.ts",
     "dev": "concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"tsc -w\" \"nodemon\"",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push"
