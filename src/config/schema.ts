@@ -1,3 +1,4 @@
+
 import {FromSchema} from "json-schema-to-ts";
 
 export const EnvSchema = {
@@ -11,9 +12,15 @@ export const EnvSchema = {
         FEEDS_COLLECTION: {type: 'string'},
         JWT_SECRET: { type: "string", minLength: 16 },
         FRONTEND_URL: { type: "string", format: "uri", nullable: true },
+        FEEDS_LIST: { type: "string"},
+        FEEDS_CRON: { type: "string"},
+
+
+
     },
     required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET"],
     additionalProperties: false,
 } as const;
 
 export type Config = FromSchema<typeof EnvSchema>;
+
