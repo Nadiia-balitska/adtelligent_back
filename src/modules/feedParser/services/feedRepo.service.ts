@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import type { PrismaClient, Prisma } from "@prisma/client";
 import type { ParsedFeed } from "./parseFeed.service";
 
 export type FeedDoc = ParsedFeed & { id?: any };
@@ -10,20 +10,44 @@ export function createFeedRepo(prisma: PrismaClient) {
   }
 
   async function upsert(feed: ParsedFeed): Promise<void> {
-    await prisma.feed.upsert({
-      where: { url: feed.url },
-      update: {
-        title: feed.title ?? null,
-        items: feed.items as Prisma.InputJsonValue,
-        fetchedAt: feed.fetchedAt,
-      },
-      create: {
-        url: feed.url,
-        title: feed.title ?? null,
-        items: feed.items as Prisma.InputJsonValue,
-        fetchedAt: feed.fetchedAt,
-      },
-    });
+    const { url, title, items, fetchedAt } = feed;
+
+    try {
+      await prisma.feed.create({
+        data: {
+          url,
+          title: title ?? null,
+          items: items as Prisma.InputJsonValue,
+          fetchedAt,
+        },
+      });
+    } catch (e: any) {
+      if (!(e?.code === "P2002")) throw e;
+    }
+
+    try {
+      await prisma.feed.update({
+        where: { url },
+        data: {
+          title: title ?? null,
+          items: items as Prisma.InputJsonValue,
+          fetchedAt,
+        },
+      });
+    } catch (e: any) {
+      if (e?.code === "P2025") {
+        await prisma.feed.create({
+          data: {
+            url,
+            title: title ?? null,
+            items: items as Prisma.InputJsonValue,
+            fetchedAt,
+          },
+        });
+      } else {
+        throw e;
+      }
+    }
   }
 
   return { findByUrl, upsert };

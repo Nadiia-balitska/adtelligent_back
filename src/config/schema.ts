@@ -7,8 +7,7 @@ export const EnvSchema = {
         PORT: {type: 'number'},
         HOST: {type: 'string'},
         FEED_DEFAULT_URL:{type: 'string',format: "uri", nullable: true},
-        MONGODB_URI: {type: "string", format: "uri" },
-        MONGODB_DB: {type: 'string'},
+        DATABASE_URL: {type: "string", format: "uri" },
         FEEDS_COLLECTION: {type: 'string'},
         JWT_SECRET: { type: "string", minLength: 16 },
         FRONTEND_URL: { type: "string", format: "uri", nullable: true },
@@ -18,7 +17,7 @@ export const EnvSchema = {
 
 
     },
-    required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET"],
+    required: ['PORT', 'HOST', "DATABASE_URL", "JWT_SECRET"],
     additionalProperties: false,
 } as const;
 
