@@ -4,6 +4,7 @@ import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
 import clickHouse from "./clickHouse";
 import fastifyStatic from '@fastify/static';
+
 export type AppOptions = Partial<FastifyServerOptions>
 
 async function buildApp(options: AppOptions = {}){
@@ -59,6 +60,7 @@ const fastify = Fastify({logger: isProd
   root: join(process.cwd(), 'public'),
   prefix: '/',
 });
+
 
   fastify.setErrorHandler((err, _req, reply) => {
     fastify.log.error({ err }, "Unhandled error");

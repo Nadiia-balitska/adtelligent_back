@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { getAd } from "../services/adServer.service.js";
 
 async function adServerRoute(fastify) {
+
+
   fastify.get("/api/balitska/health", async () => ({ ok: true }));
 
   fastify.post("/api/balitska/get", async (request, reply) => {
