@@ -23,19 +23,37 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongo
     depends_on:
       - mongo
-    
+
   clickhouse:
-    image: yandex/clickhouse-server:latest
-    environment:
-      - CLICKHOUSE_USER=default
-      - CLICKHOUSE_PASSWORD=default
-    user: root
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
     ports:
       - "8123:8123"
       - "9000:9000"
+    environment:
+      - CLICKHOUSE_DB=adtelligent_back
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=mypassword
     volumes:
       - clickhouse_data:/var/lib/clickhouse
+
+  tabix:
+      image: spoonest/clickhouse-tabix-web-client:latest
+      container_name: tabix
+      ports:
+        - "8080:8080"
+      environment:
+        - CLICKHOUSE_HOST=clickhouse
+        - CLICKHOUSE_PORT=8123
+        - CLICKHOUSE_USER=default
+        - CLICKHOUSE_PASSWORD=mypassword
+      depends_on:
+        - clickhouse
+volumes:
+  clickhouse_data:
+
 
 
 volumes:
   mongo_data:
+  clickhouse_data:
