@@ -12,7 +12,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
   const r = fastify.withTypeProvider<JsonSchemaToTsProvider>();
   const service = createAuthService(fastify);
 
-  r.post<{ Body: AuthBody; Reply: AuthReply }>(
+  r.post(
     "/api/auth/register",
     { schema: registerSchema },
     async (req, reply) => {
@@ -21,21 +21,20 @@ const authRoutes = async (fastify: FastifyInstance) => {
 
         reply.setCookie("token", token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: fastify.config.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24 * 7,
         });
 
         return { token };
-      } catch (err: any) {
-        reply.code(err?.statusCode ?? 500);
-        return { message: err?.message ?? "Registration failed" } as any;
+      } catch (err) {
+        reply.internalServerError()
       }
     }
   );
 
-  r.post<{ Body: AuthBody; Reply: AuthReply }>(
+  r.post<{ Body: AuthBody; Reply: AuthReply }>(    //make the samme kike higher
     "/api/auth/login",
     { schema: loginSchema },
     async (req, reply) => {
@@ -44,14 +43,14 @@ const authRoutes = async (fastify: FastifyInstance) => {
 
         reply.setCookie("token", token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: fastify.config.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24 * 7,
         });
 
         return { token };
-      } catch (err: any) {
+      } catch (err) {
         reply.code(err?.statusCode ?? 500);
         return { message: err?.message ?? "Login failed" } as any;
       }

@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { request } from "undici";
+import { request } from "undici";//delete
 
 export type Article = {
   url: string;
@@ -10,6 +10,7 @@ export type Article = {
 
 export async function parseArticle(url: string): Promise<Article> {
   const { body, headers, statusCode } = await request(url, { method: "GET" });
+  // const date = await fetch(url)
   if (statusCode >= 400) throw new Error(`HTTP ${statusCode}`);
   const ctype = headers["content-type"]?.toString() || "";
   if (!ctype.includes("text/html")) throw new Error("Not an HTML page");

@@ -18,18 +18,30 @@ async function lineItemRoute(fastify) {
       return reply.code(400).send({ message: "Поле файлу 'creative' обов'язкове" });
     }
 
-    const size = String(file.fields.size?.value ?? "");
+    const size = String(file.fields.size?.value ?? "").trim(); 
     const minCPM = parseFloat(String(file.fields.minCPM?.value ?? "0"));
     const maxCPM = parseFloat(String(file.fields.maxCPM?.value ?? "0"));
-    const geo = String(file.fields.geo?.value ?? "");
-    const adType = String(file.fields.adType?.value ?? "BANNER");
+    const geo = String(file.fields.geo?.value ?? "").trim(); 
+    const adType = String(file.fields.adType?.value ?? "BANNER").trim();
     const frequencyCap = parseInt(String(file.fields.frequencyCap?.value ?? "1"), 10);
+
+    if (!size || !/^\d+x\d+$/i.test(size)) {
+      return reply.code(400).send({ message: "Поле 'size' має бути у форматі WxH, напр. 300x250" });
+    }
+    if (isNaN(minCPM) || isNaN(maxCPM)) {
+      return reply.code(400).send({ message: "minCPM / maxCPM мають бути числами" });
+    }
 
     const dir = join(process.cwd(), "public", "creatives");
     try { await stat(dir); } catch { await mkdir(dir, { recursive: true }); }
 
-    const filename = `${Date.now()}-${file.filename.replace(/\s+/g, "_")}`;
+    const safeName = String(file.filename || "creative")
+      .replace(/\s+/g, "_")
+      .replace(/[^\w.\-]/g, "");
+
+    const filename = `${Date.now()}-${safeName}`;
     const filepath = join(dir, filename);
+
     await new Promise((resolve, reject) => {
       file.file
         .pipe(createWriteStream(filepath))
@@ -44,7 +56,8 @@ async function lineItemRoute(fastify) {
       geo,
       adType,
       frequencyCap,
-      creativePath: `/public/creatives/${filename}`,
+      creativePath: `/creatives/${filename}`,
+    
     });
 
     reply.code(201).send(created);
