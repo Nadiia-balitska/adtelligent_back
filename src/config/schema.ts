@@ -11,7 +11,7 @@ export const EnvSchema = {
         MONGODB_DB: {type: 'string'},
         FEEDS_COLLECTION: {type: 'string'},
         JWT_SECRET: { type: "string", minLength: 16 },
-        FRONTEND_URL: { type: "string", format: "uri", nullable: true },
+        VITE_API_URL: { type: "string", format: "uri", nullable: true },
         FEEDS_LIST: { type: "string"},
         FEEDS_CRON: { type: "string"},
         NODE_ENV:{ type: "string"},
