@@ -34,7 +34,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
     }
   );
 
-  r.post<{ Body: AuthBody; Reply: AuthReply }>(    //make the samme kike higher
+  r.post(    
     "/api/auth/login",
     { schema: loginSchema },
     async (req, reply) => {
@@ -51,7 +51,8 @@ const authRoutes = async (fastify: FastifyInstance) => {
 
         return { token };
       } catch (err) {
-        reply.code(err?.statusCode ?? 500);
+            reply.internalServerError()
+
         return { message: err?.message ?? "Login failed" } as any;
       }
     }

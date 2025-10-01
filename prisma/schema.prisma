@@ -61,5 +61,5 @@ model ImpressionCounter {
   lineItemId String  @db.ObjectId
   count      Int     @default(0)
 
-  @@unique([userId, lineItemId]) // для upsert інкременту
+  @@unique([userId, lineItemId])
 }

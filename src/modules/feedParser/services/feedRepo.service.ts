@@ -22,18 +22,15 @@ export function createFeedRepo(prisma: PrismaClient) {
       fetchedAt: feed.fetchedAt ? new Date(feed.fetchedAt) : new Date(),
     };
 
-    try {
-      await prisma.feed.update({
-        where: { url: data.url },
-        data: { title: data.title, items: data.items, fetchedAt: data.fetchedAt },
-      });
-    } catch (e: any) {
-      if (e?.code === "P2025") {
-        await prisma.feed.create({ data });
-      } else {
-        throw e; 
-      }
-    }
+    await prisma.feed.upsert({
+      where: { url: data.url },
+      update: {
+        title: data.title,
+        items: data.items,
+        fetchedAt: data.fetchedAt,
+      },
+      create: data,
+    });
   }
 
   return { findByUrl, upsert };

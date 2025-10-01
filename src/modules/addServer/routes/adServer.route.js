@@ -16,12 +16,18 @@ async function adServerRoute(fastify) {
       });
     }
 
-    const body = (request.body || {});
-    const ad = await getAd(fastify, userId, {
-      geo: body.geo ? String(body.geo) : undefined,
-      size: body.size ? String(body.size) : undefined,
-      adType: body.adType ? String(body.adType) : undefined,
-      cpm: typeof body.cpm === "number" ? body.cpm : undefined,
+   const {
+      geo,
+      size,
+      adType,
+      cpm
+    } = request.body || {};
+
+   const ad = await getAd(fastify, userId, {
+      geo: geo ? String(geo) : undefined,
+      size: size ? String(size) : undefined,
+      adType: adType ? String(adType) : undefined,
+      cpm: typeof cpm === "number" ? cpm : undefined,
     });
 
     if (!ad) return reply.code(204).send();

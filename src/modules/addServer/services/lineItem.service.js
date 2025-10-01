@@ -1,20 +1,30 @@
 import { AdType } from "@prisma/client";
 
-
 export async function createLineItem(fastify, data) {
-  const adTypeKey = String(data.adType || "BANNER").toUpperCase();
+  const {
+    size,             
+    minCPM,           
+    maxCPM,           
+    geo,             
+    adType,          
+    frequencyCap,     
+    creativePath,     
+    active           
+  } = data;
+
+  const adTypeKey = String(adType || "BANNER").toUpperCase();
   const adTypeEnum = AdType[adTypeKey] ?? AdType.BANNER;
 
   return fastify.prisma.lineItem.create({
     data: {
-      size: data.size,
-      minCPM: data.minCPM,
-      maxCPM: data.maxCPM,
-      geo: data.geo,
+      size,
+      minCPM,
+      maxCPM,
+      geo,
       adType: adTypeEnum,
-      frequencyCap: data.frequencyCap,
-      creativePath: data.creativePath,
-      active: typeof data.active === "boolean" ? data.active : true,
+      frequencyCap,
+      creativePath,
+      active: typeof active === "boolean" ? active : true,
     },
   });
 }
