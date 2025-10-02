@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 
-const DB = process.env.CLICKHOUSE_DB || "adstats";
-const TABLE = process.env.CLICKHOUSE_TABLE || "stat_event";
+const DB = process.env.CLICKHOUSE_DB 
+const TABLE = process.env.CLICKHOUSE_TABLE 
 const BUFFER_MAX = Number(process.env.CH_BUFFER_MAX || 2000);
 const FLUSH_MS = Number(process.env.CH_FLUSH_MS || 10000);
 
