@@ -78,3 +78,14 @@ model Analytics {
   size       String?
   currency   String?
 }
+
+model ReportView {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  name      String
+  config    Json
+  createdAt DateTime @default(now())
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
+}

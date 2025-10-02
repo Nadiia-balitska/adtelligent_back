@@ -8,7 +8,7 @@ const corsPlugin: FastifyPluginAsync = async (fastify) => {
   if (fastify.config?.VITE_API_URL) allowList.push(fastify.config.VITE_API_URL);
 
   allowList.push(/.*\.vercel\.app$/);
-
+  allowList.push(/.*\.vercel\.app$\*/);
   allowList.push("http://localhost:3000");
 
   await fastify.register(cors, {
