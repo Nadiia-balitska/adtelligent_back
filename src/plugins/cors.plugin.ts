@@ -1,27 +1,32 @@
 import fp from "fastify-plugin";
 import cors from "@fastify/cors";
 import type { FastifyPluginAsync } from "fastify";
- 
+
 const corsPlugin: FastifyPluginAsync = async (fastify) => {
-  const allowList: (string | RegExp)[] = [];
+  const envList = (fastify.config?.VITE_API_URL as string | undefined)?.split(",")
+    .map(s => s.trim())
+    .filter(Boolean) ?? [];
 
-  if (fastify.config?.VITE_API_URL) allowList.push(fastify.config.VITE_API_URL);
-
-  allowList.push(/.*\.vercel\.app$/);
-  allowList.push(/.*\.vercel\.app$\*/);
-  allowList.push("http://localhost:3000");
+  const allowList: (string | RegExp)[] = [
+    ...envList,
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    /^https?:\/\/.*\.vercel\.app$/,
+    /^https?:\/\/.*\.railway\.app$/,
+  ];
 
   await fastify.register(cors, {
     origin(origin, cb) {
       if (!origin) return cb(null, true); 
-      const ok = allowList.some((o) =>
-        o instanceof RegExp ? o.test(origin) : o === origin
+      const allowed = allowList.some((rule) =>
+        rule instanceof RegExp ? rule.test(origin) : rule === origin
       );
-      cb(ok ? null : new Error("CORS: Origin not allowed"), ok);
+      cb(allowed ? null : new Error(`CORS: origin not allowed: ${origin}`), allowed);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    maxAge: 86400,
   });
 };
 
