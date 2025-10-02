@@ -4,6 +4,23 @@ import type { FastifyInstance } from "fastify";
 
 export default fp(async (fastify: FastifyInstance) => {
   const prisma = new PrismaClient();
+
+const realTx = prisma.$transaction.bind(prisma);
+prisma.$transaction = (arg: any, ...rest: any[]) => {
+  if (Array.isArray(arg)) {
+    return (async () => {
+      const results = [];
+      for (const p of arg) results.push(await p);
+      return results;
+    })();
+  }
+  if (typeof arg === "function") {
+    return (arg as Function)(prisma);
+  }
+  return realTx(arg, ...rest);
+};
+
+
   await prisma.$connect();
 
   fastify.decorate("prisma", prisma);

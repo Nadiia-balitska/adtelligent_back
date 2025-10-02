@@ -4,5 +4,6 @@ declare module 'fastify' {
     interface FastifyInstance {
         config: Config;
         pluginLoaded: (pluginName: string) => void;
+        clickHouse: any; 
     }
 };

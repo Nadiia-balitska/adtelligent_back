@@ -7,6 +7,11 @@ datasource db {
   url      = env("MONGODB_URI")
 }
 
+enum AdType {
+  BANNER
+  VIDEO
+}
+
 model Feed {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   url       String   @unique
@@ -21,4 +26,40 @@ model User {
   password  String
   name      String?
   createdAt DateTime @default(now())
+}
+
+model LineItem {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  size          String
+  minCPM        Float
+  maxCPM        Float
+  geo           String
+  adType        AdType
+  frequencyCap  Int
+  creativePath  String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  impressions   Impression[]
+}
+
+model Impression {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  lineItemId  String   @db.ObjectId
+  servedAt    DateTime @default(now())
+
+  lineItem    LineItem @relation(fields: [lineItemId], references: [id])
+
+  @@index([userId, lineItemId])
+  @@index([servedAt])
+}
+
+model ImpressionCounter {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String
+  lineItemId String  @db.ObjectId
+  count      Int     @default(0)
+
+  @@unique([userId, lineItemId])
 }
