@@ -15,7 +15,7 @@ export const EnvSchema = {
         FEEDS_LIST: { type: "string"},
         FEEDS_CRON: { type: "string"},
         NODE_ENV:{ type: "string"},
-         CLICKHOUSE_URL: { type: "string", format: "uri" },
+         CLICKHOUSE_URL: { type: "string", format: "uri", nullable: true},
     CLICKHOUSE_USER: { type: "string" },
     CLICKHOUSE_PASSWORD: { type: "string" },
     CLICKHOUSE_DB: { type: "string" },
