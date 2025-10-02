@@ -38,7 +38,7 @@ services:
       - "8123:8123"  
       - "9000:9000"  
     environment:
-      CLICKHOUSE_DB: nadia_db_clickhouse
+      CLICKHOUSE_DB: nadia-analytics
       CLICKHOUSE_USER: default
       CLICKHOUSE_PASSWORD: fastify.config.CLICKHOUSE_PASSWORD
     ulimits:
