@@ -3,29 +3,24 @@ import type { FastifyInstance } from "fastify";
 import { createClient, type ClickHouseClient } from "@clickhouse/client";
 
 declare module "fastify" {
-  interface FastifyInstance {
-    clickhouse: ClickHouseClient;
-  }
+  interface FastifyInstance { clickhouse: ClickHouseClient }
 }
 
-const DB_NAME = process.env.CLICKHOUSE_DB 
-const TABLE_NAME = process.env.CLICKHOUSE_TABLE 
+const DB = process.env.CLICKHOUSE_DB || "adstats";
+const TABLE = process.env.CLICKHOUSE_TABLE || "stat_event";
 
-export default fp(async function clickhousePlugin(fastify: FastifyInstance) {
-  const ch = createClient({
-    url: process.env.CLICKHOUSE_URL || "http://localhost:8123", 
+export default fp(async function clickhousePlugin(app: FastifyInstance) {
+  const client = createClient({
+    url: process.env.CLICKHOUSE_URL || "http://localhost:8123",
     username: process.env.CLICKHOUSE_USER || "default",
     password: process.env.CLICKHOUSE_PASSWORD || "",
   });
 
-  try {
-    await ch.exec({
-      query: `CREATE DATABASE IF NOT EXISTS ${DB_NAME}`,
-    });
+  await client.exec({ query: `CREATE DATABASE IF NOT EXISTS ${DB}` });
 
-    await ch.exec({
-      query: `
-CREATE TABLE IF NOT EXISTS ${DB_NAME}.${TABLE_NAME} (
+  await client.exec({
+    query: `
+CREATE TABLE IF NOT EXISTS ${DB}.${TABLE} (
   id          UUID         DEFAULT generateUUIDv4(),
   ts          DateTime     DEFAULT now(),
   date        Date         MATERIALIZED toDate(ts),
@@ -40,23 +35,15 @@ CREATE TABLE IF NOT EXISTS ${DB_NAME}.${TABLE_NAME} (
   geo         LowCardinality(String),
 
   cpm         Float64
-) ENGINE = MergeTree
+)
+ENGINE = MergeTree
 PARTITION BY toYYYYMM(date)
 ORDER BY (date, hour, event, bidder, adUnitCode, creativeId, id)
 SETTINGS index_granularity = 8192
-      `,
-    });
-
-    fastify.log.info({ msg: "ClickHouse DB & table are ready" });
-  } catch (err) {
-    fastify.log.error({ err }, "Failed to init ClickHouse");
-    throw err;
-  }
-
-  fastify.decorate("clickhouse", ch);
-
-  fastify.addHook("onClose", async () => {
-    await ch.close();
-    fastify.log.info("ClickHouse connection closed");
+-- TTL date + INTERVAL 90 DAY DELETE   -- розкоментуй, якщо треба автоприбирання
+`,
   });
-});
+
+  app.decorate("clickhouse", client);
+  app.addHook("onClose", async () => { await client.close(); });
+}, { name: "clickhouse-plugin" });
