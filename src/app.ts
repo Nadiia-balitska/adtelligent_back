@@ -22,6 +22,10 @@ const fastify = Fastify({logger: isProd
     trustProxy: true})
 
     
+    await fastify.register(fastifyStatic, {
+  root: join(process.cwd(), 'public'),
+  prefix: '/',
+});
 
     await  fastify.register(configPlugin)
 
@@ -38,6 +42,14 @@ const fastify = Fastify({logger: isProd
             options,
             ignorePattern: /^((?!plugin).)*$/,
         });
+
+        await fastify.register(AutoLoad, {
+      dir: join(__dirname, "modules"),
+      options,
+      dirNameRoutePrefix: false,
+      maxDepth: 5,
+      ignorePattern: /^(?!.*\.(plugin|route)\.).*$/,
+    });
 
         fastify.log.info("✅ Plugins loaded successfully");
     } catch (error) {
@@ -56,10 +68,7 @@ const fastify = Fastify({logger: isProd
     ignorePattern: /^((?!route).)*$/ 
   });
 
-    await fastify.register(fastifyStatic, {
-  root: join(process.cwd(), 'public'),
-  prefix: '/',
-});
+
 
 
   fastify.setErrorHandler((err, _req, reply) => {
