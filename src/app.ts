@@ -24,7 +24,6 @@ const fastify = Fastify({logger: isProd
     
 
     await  fastify.register(configPlugin)
-    // await  fastify.register(clickHouse)
 
 
     try {
