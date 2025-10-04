@@ -10,7 +10,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
   const route = fastify.withTypeProvider<JsonSchemaToTsProvider>();
   const service = createAuthService(fastify);
 
-  route.post("/api/auth/register", { schema: registerSchema }, async (req, reply) => {
+  route.post("/register", { schema: registerSchema }, async (req, reply) => {
     try {
       const { token } = await service.register(req.body);
       reply.setCookie("token", token, {
@@ -29,7 +29,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
     }
   });
 
-  route.post("/api/auth/login", { schema: loginSchema }, async (req, reply) => {
+  route.post("/login", { schema: loginSchema }, async (req, reply) => {
     try {
       const { token } = await service.login(req.body);
       reply.setCookie("token", token, {
@@ -48,7 +48,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
     }
   });
 
-  route.post("/api/auth/logout", async (_req, reply) => {
+  route.post("/logout", async (_req, reply) => {
     reply.clearCookie("token", {
       path: "/",
       secure: true,
@@ -57,7 +57,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
     return reply.code(204).send();
   });
 
-  route.get("/api/auth/me", { preValidation: [fastify.authenticate] }, async (req) => {
+  route.get("/me", { preValidation: [fastify.authenticate] }, async (req) => {
     const payload = await req.jwtVerify();
     const { sub, email, name } = payload as { sub: string; email: string; name?: string | null };
     return { id: sub, email, name: name ?? null };
