@@ -46,7 +46,7 @@ const fastify = Fastify({logger: isProd
         await fastify.register(AutoLoad, {
       dir: join(__dirname, "modules"),
       options,
-      dirNameRoutePrefix: false,
+      // dirNameRoutePrefix: false,
       maxDepth: 5,
       ignorePattern: /^(?!.*\.(plugin|route)\.).*$/,
     });
@@ -60,11 +60,10 @@ const fastify = Fastify({logger: isProd
   fastify.get("/health/server", async () => ({ status: "ok" }));
 
 
-
-  await fastify.register(AutoLoad, 
+  await fastify.register(AutoLoad,
     { dir: join(__dirname, "routes"),
     options,
-    dirNameRoutePrefix: false, 
+    // dirNameRoutePrefix: false, 
     ignorePattern: /^((?!route).)*$/ 
   });
 
