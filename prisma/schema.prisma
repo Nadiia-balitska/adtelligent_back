@@ -18,6 +18,7 @@ model Feed {
   title     String?
   items     Json
   fetchedAt DateTime @default(now())
+   @@map("Feed")
 }
 
 model User {
