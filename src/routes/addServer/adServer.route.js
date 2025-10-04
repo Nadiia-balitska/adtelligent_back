@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { getAd } from "../../modules/addServer/services/adServer.service.js";
+import { getAd } from "../modules/addServer/services/adServer.service.js";
 
 async function adServerRoute(fastify) {
 

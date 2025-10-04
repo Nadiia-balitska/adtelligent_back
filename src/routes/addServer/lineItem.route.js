@@ -2,7 +2,7 @@ import multipart from "@fastify/multipart";
 import { mkdir, stat } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { join } from "node:path";
-import { createLineItem, listLineItems } from "../../modules/addServer/services/lineItem.service.js";
+import { createLineItem, listLineItems } from "../modules/addServer/services/lineItem.service.js";
 
 async function lineItemRoute(fastify) {
   await fastify.register(multipart);

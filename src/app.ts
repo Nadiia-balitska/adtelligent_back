@@ -21,15 +21,15 @@ const fastify = Fastify({logger: isProd
         },
     trustProxy: true})
 
-// fastify.addHook("onRoute", (r) => {
-//   fastify.log.info(`[ROUTE] ${r.method} ${r.url}`);
-// });
+fastify.addHook("onRoute", (r) => {
+  fastify.log.info(`[ROUTE] ${r.method} ${r.url}`);
+});
 
-// fastify.addHook("onRegister", (inst, opts) => {
-//   // @ts-ignore
-//   const pfx = opts?.prefix ? ` (prefix: ${opts.prefix})` : "";
-//   fastify.log.info(`[PLUGIN] register${pfx}`);
-// });
+fastify.addHook("onRegister", (inst, opts) => {
+  // @ts-ignore
+  const pfx = opts?.prefix ? ` (prefix: ${opts.prefix})` : "";
+  fastify.log.info(`[PLUGIN] register${pfx}`);
+});
     
     await fastify.register(fastifyStatic, {
   root: join(process.cwd(), 'public'),
@@ -61,13 +61,13 @@ const fastify = Fastify({logger: isProd
         throw error;
     }
     
-await fastify.register(AutoLoad, {
-  dir: join(__dirname, "modules"),
-  options: { prefix: "/api" },
-  maxDepth: 5,
-  dirNameRoutePrefix: false,              
-  ignorePattern: /^(?!.*\.(plugin|route)\.).*$/, 
-});
+// await fastify.register(AutoLoad, {
+//   dir: join(__dirname, "modules"),
+//   options: { prefix: "/api" },
+//   maxDepth: 5,
+//   dirNameRoutePrefix: false,              
+//   ignorePattern: /^(?!.*\.(plugin|route)\.).*$/, 
+// });
 
 
 
@@ -80,14 +80,14 @@ await fastify.register(AutoLoad, {
 
 
 
-// await fastify.ready();
-// fastify.log.info("\n" + fastify.printRoutes());
+await fastify.ready();
+fastify.log.info("\n" + fastify.printRoutes());
 
 
-  fastify.setErrorHandler((err, _req, reply) => {
-    fastify.log.error({ err }, "Unhandled error");
-    reply.code(err.statusCode ?? 500).send({ message: "Internal Server Error" });
-  });
+  // fastify.setErrorHandler((err, _req, reply) => {
+  //   fastify.log.error({ err }, "Unhandled error");
+  //   reply.code(err.statusCode ?? 500).send({ message: "Internal Server Error" });
+  // });
 
 
     return fastify

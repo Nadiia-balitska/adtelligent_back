@@ -4,7 +4,7 @@ import { createClient, type ClickHouseClient } from "@clickhouse/client";
 
 declare module "fastify" {
   interface FastifyInstance {
-    clickhouse?: ClickHouseClient;
+    clickhouse: ClickHouseClient;
   }
 }
 
