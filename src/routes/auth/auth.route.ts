@@ -3,9 +3,9 @@ import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts
 import {
   registerSchema,
   loginSchema,
-} from "../schemas/auth.schema";
-import { createAuthService } from "../services/auth.service";
-
+} from "../../modules/auth/schemas/auth.schema";
+import { createAuthService } from "../../modules/auth/services/auth.service";
+export const autoPrefix = "/auth";
 const authRoutes = async (fastify: FastifyInstance) => {
   const route = fastify.withTypeProvider<JsonSchemaToTsProvider>();
   const service = createAuthService(fastify);

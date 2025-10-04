@@ -21,11 +21,23 @@ const fastify = Fastify({logger: isProd
         },
     trustProxy: true})
 
+// fastify.addHook("onRoute", (r) => {
+//   fastify.log.info(`[ROUTE] ${r.method} ${r.url}`);
+// });
+
+// fastify.addHook("onRegister", (inst, opts) => {
+//   // @ts-ignore
+//   const pfx = opts?.prefix ? ` (prefix: ${opts.prefix})` : "";
+//   fastify.log.info(`[PLUGIN] register${pfx}`);
+// });
     
     await fastify.register(fastifyStatic, {
   root: join(process.cwd(), 'public'),
   prefix: '/',
 });
+
+  fastify.get("/health/server", async () => ({ status: "ok" }));
+
 
     await  fastify.register(configPlugin)
 
@@ -43,31 +55,33 @@ const fastify = Fastify({logger: isProd
             ignorePattern: /^((?!plugin).)*$/,
         });
 
-        await fastify.register(AutoLoad, {
-      dir: join(__dirname, "modules"),
-      options,
-      // dirNameRoutePrefix: false,
-      maxDepth: 5,
-      ignorePattern: /^(?!.*\.(plugin|route)\.).*$/,
-    });
-
         fastify.log.info("✅ Plugins loaded successfully");
     } catch (error) {
         fastify.log.error("Error in autoload:", error);
         throw error;
     }
     
-  fastify.get("/health/server", async () => ({ status: "ok" }));
+await fastify.register(AutoLoad, {
+  dir: join(__dirname, "modules"),
+  options: { prefix: "/api" },
+  maxDepth: 5,
+  dirNameRoutePrefix: false,              
+  ignorePattern: /^(?!.*\.(plugin|route)\.).*$/, 
+});
+
 
 
   await fastify.register(AutoLoad,
     { dir: join(__dirname, "routes"),
-    options,
-    // dirNameRoutePrefix: false, 
+      options,
     ignorePattern: /^((?!route).)*$/ 
   });
 
 
+
+
+// await fastify.ready();
+// fastify.log.info("\n" + fastify.printRoutes());
 
 
   fastify.setErrorHandler((err, _req, reply) => {
@@ -77,6 +91,7 @@ const fastify = Fastify({logger: isProd
 
 
     return fastify
+    
 }
 
 export default buildApp
