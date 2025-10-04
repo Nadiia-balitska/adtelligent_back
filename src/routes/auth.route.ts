@@ -22,6 +22,7 @@ const authRoutes = async (fastify: FastifyInstance) => {
       });
       return { token };
     } catch (err) {
+      fastify.log.error({ err }, "register failed"); 
       return reply.code(500).send({
         message: "Register failed",
         token: ""

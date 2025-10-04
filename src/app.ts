@@ -21,15 +21,15 @@ const fastify = Fastify({logger: isProd
         },
     trustProxy: true})
 
-fastify.addHook("onRoute", (r) => {
-  fastify.log.info(`[ROUTE] ${r.method} ${r.url}`);
-});
+// fastify.addHook("onRoute", (r) => {
+//   fastify.log.info(`[ROUTE] ${r.method} ${r.url}`);
+// });
 
-fastify.addHook("onRegister", (inst, opts) => {
-  // @ts-ignore
-  const pfx = opts?.prefix ? ` (prefix: ${opts.prefix})` : "";
-  fastify.log.info(`[PLUGIN] register${pfx}`);
-});
+// fastify.addHook("onRegister", (inst, opts) => {
+//   // @ts-ignore
+//   const pfx = opts?.prefix ? ` (prefix: ${opts.prefix})` : "";
+//   fastify.log.info(`[PLUGIN] register${pfx}`);
+// });
     
     await fastify.register(fastifyStatic, {
   root: join(process.cwd(), 'public'),

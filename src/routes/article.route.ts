@@ -9,7 +9,7 @@ export default async function articleRoutes(fastify: FastifyInstance) {
   const r = fastify.withTypeProvider<JsonSchemaToTsProvider>();
 
   r.get(
-    "/api/article",
+    "/article",
     {
       schema,
       preValidation: [fastify.authenticate],

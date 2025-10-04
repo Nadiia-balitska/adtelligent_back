@@ -8,11 +8,11 @@ declare module "fastify" {
   }
 }
 
-const DB   = process.env.CLICKHOUSE_DB        || "nadia_db_clickhouse";
-const TBL  = process.env.CLICKHOUSE_TABLE     || "stat_event";
-const URL  = process.env.CLICKHOUSE_URL       || "";
-const USER = process.env.CLICKHOUSE_USER      || "default";
-const PASS = process.env.CLICKHOUSE_PASSWORD  || "";
+const DB   = process.env.CLICKHOUSE_DB       
+const TBL  = process.env.CLICKHOUSE_TABLE     
+const URL  = process.env.CLICKHOUSE_URL      
+const USER = process.env.CLICKHOUSE_USER      
+const PASS = process.env.CLICKHOUSE_PASSWORD  
 
 const CONNECT_TIMEOUT_MS = Number(process.env.CLICKHOUSE_CONNECT_TIMEOUT_MS || 3000);
 const MAX_INIT_MS        = Number(process.env.CLICKHOUSE_MAX_INIT_MS || 9000);
