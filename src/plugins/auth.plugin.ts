@@ -27,7 +27,10 @@ export default fp(authPlugin, { name: "auth-plugin" });
 
 declare module "fastify" {
   interface FastifyInstance {
-    authenticate: (req: any, reply: any) => Promise<void>;
+    authenticate: (
+      req: import("fastify").FastifyRequest,
+      reply: any
+    ) => Promise<void>;
   }
   interface FastifyRequest {
     jwt: { user?: { id: string; email: string } };

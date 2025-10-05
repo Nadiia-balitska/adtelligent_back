@@ -2,9 +2,10 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
-import fastifyStatic from '@fastify/static';
-
+import { trace, metrics } from '@opentelemetry/api'
+import fs from 'fs/promises'
 import fastifyMultipart from "@fastify/multipart";
+import otelConsolePlugin from '../otel/plugins/otel-console.plugin';
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -13,7 +14,6 @@ async function buildApp(options: AppOptions = {}){
 
 const isProd = process.env.NODE_ENV === "production";
 
-    const sdk = await initOpenTelemetry()
 
 
 const fastify = Fastify({logger: isProd
@@ -27,17 +27,12 @@ const fastify = Fastify({logger: isProd
     trustProxy: true})
 
 
-//!  otel
 fastify.register(fastifyMultipart);
 
 
-// fastify.addHook( 'onClose', async{
-  
-// })
    
 await  fastify.register(configPlugin)
-
-//!
+await fastify.register(otelConsolePlugin)
 
 
     try {
@@ -67,7 +62,16 @@ await  fastify.register(configPlugin)
     ignorePattern: /^((?!route).)*$/ 
   });
  
-
+fastify.get('/otel/test', async () => {
+  const tracer = trace.getTracer('demo')
+  const span = tracer.startSpan('manual-span')
+  const meter = metrics.getMeter('demo')
+  const c = meter.createCounter('test_counter')
+  c.add(1, { route: '/otel/test' })
+  await fs.writeFile('./otel-demo.txt', 'hi\n', { flag: 'a' })
+  span.end()
+  return { ok: true }
+})
   fastify.get("/health/server", async () => ({ status: "ok" }));
     
 

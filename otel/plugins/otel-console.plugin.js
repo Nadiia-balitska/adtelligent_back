@@ -2,8 +2,7 @@ import fp from 'fastify-plugin'
 import fastifyOtel from '@fastify/otel'
 import 'dotenv/config'
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api'
-import { NodeSDK } from '@opentelemetry/sdk-node'
-import { Resource } from '@opentelemetry/resources'
+import { NodeSDK, resources } from '@opentelemetry/sdk-node'
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -19,7 +18,7 @@ import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino'
 export default fp(async function otelConsolePlugin(fastify) {
   diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO)
 
-  const resource = new Resource({
+  const resource = new resources({
     [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'fastify-form-app',
     [ATTR_SERVICE_VERSION]: process.env.OTEL_SERVICE_VERSION || '1.0.0',
     [ATTR_DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'development'
@@ -40,7 +39,6 @@ export default fp(async function otelConsolePlugin(fastify) {
   })
 
   await sdk.start()
-  fastify.log.info('OTEL console plugin: started')
 
   await fastify.register(fastifyOtel, {
     wrapRoutes: true,
