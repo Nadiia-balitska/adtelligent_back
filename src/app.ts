@@ -3,7 +3,8 @@ import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
 import fastifyStatic from '@fastify/static';
-import staticPlugin from "./plugins/static.plugin";
+
+import fastifyMultipart from "@fastify/multipart";
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -11,6 +12,9 @@ async function buildApp(options: AppOptions = {}){
 
 
 const isProd = process.env.NODE_ENV === "production";
+
+    const sdk = await initOpenTelemetry()
+
 
 const fastify = Fastify({logger: isProd
       ? true
@@ -23,8 +27,17 @@ const fastify = Fastify({logger: isProd
     trustProxy: true})
 
 
+//!  otel
+fastify.register(fastifyMultipart);
 
-    await  fastify.register(configPlugin)
+
+// fastify.addHook( 'onClose', async{
+  
+// })
+   
+await  fastify.register(configPlugin)
+
+//!
 
 
     try {
@@ -81,3 +94,7 @@ return fastify
 }
 
 export default buildApp
+
+function initOpenTelemetry() {
+  throw new Error("Function not implemented.");
+}
