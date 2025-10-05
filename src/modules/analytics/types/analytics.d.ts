@@ -1,8 +1,9 @@
 import type { FastifyInstance } from "fastify";
 
-export type StatEvent = {
+export interface StatEvent {
   event: string;
   ts?: number | string | Date | null;
+  timestamp?: number | string | Date | null; 
   userId?: string | null;
   page?: string | null;
   bidder?: string | null;
@@ -10,9 +11,9 @@ export type StatEvent = {
   adUnitCode?: string | null;
   geo?: string | null;
   cpm?: number | null;
-};
+}
 
-export type ReportQuery = {
+export interface ReportQuery {
   date_from?: string;
   date_to?: string;
   dimensions?: string;
@@ -26,11 +27,11 @@ export type ReportQuery = {
   cpm_max?: number;
   page?: number;
   page_size?: number;
-};
+}
 
 export type ClickHouseQueryArgs = Record<string, string | number | null | undefined>;
 
-export type FastifyClickhouse = {
+export interface FastifyClickhouse {
   insert(input: {
     table: string;
     values: unknown[];
@@ -41,10 +42,28 @@ export type FastifyClickhouse = {
     format?: "JSONEachRow";
     query_params?: ClickHouseQueryArgs;
   }): Promise<{ json(): Promise<any[]>; text(): Promise<string> }>;
-};
+}
 
 declare module "fastify" {
   interface FastifyInstance {
     clickhouse: FastifyClickhouse;
+  }
+}
+
+
+export type ClickHouseQueryArgs = Record<string, string | number | null | undefined>;
+
+export type FastifyClickhouse = {
+  insert(input: { table: string; values: unknown[]; format?: "JSONEachRow" }): Promise<void>;
+  query(input: {
+    query: string;
+    format?: "JSONEachRow";
+    query_params?: ClickHouseQueryArgs;
+  }): Promise<{ json(): Promise<unknown[]>; text(): Promise<string> }>;
+};
+
+declare module "fastify" {
+  interface FastifyInstance {
+    clickhouse?: FastifyClickhouse | null;
   }
 }

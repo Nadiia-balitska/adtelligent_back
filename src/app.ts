@@ -3,6 +3,7 @@ import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
 import fastifyStatic from '@fastify/static';
+import staticPlugin from "./plugins/static.plugin";
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -21,23 +22,8 @@ const fastify = Fastify({logger: isProd
         },
     trustProxy: true})
 
-// fastify.addHook("onRoute", (r) => {
-//   fastify.log.info(`[ROUTE] ${r.method} ${r.url}`);
-// });
 
-// fastify.addHook("onRegister", (inst, opts) => {
-//   // @ts-ignore
-//   const pfx = opts?.prefix ? ` (prefix: ${opts.prefix})` : "";
-//   fastify.log.info(`[PLUGIN] register${pfx}`);
-// });
-    
-    await fastify.register(fastifyStatic, {
-  root: join(process.cwd(), 'public'),
-  prefix: '/',
-});
-
-  fastify.get("/health/server", async () => ({ status: "ok" }));
-
+    await fastify.register(staticPlugin);
 
     await  fastify.register(configPlugin)
 
@@ -61,36 +47,37 @@ const fastify = Fastify({logger: isProd
         throw error;
     }
     
-// await fastify.register(AutoLoad, {
-//   dir: join(__dirname, "modules"),
-//   options: { prefix: "/api" },
-//   maxDepth: 5,
-//   dirNameRoutePrefix: false,              
-//   ignorePattern: /^(?!.*\.(plugin|route)\.).*$/, 
-// });
 
 
-
-  await fastify.register(AutoLoad,
+    await fastify.register(AutoLoad,
     { dir: join(__dirname, "routes"),
       options,
     ignorePattern: /^((?!route).)*$/ 
   });
+ 
 
+  fastify.get("/health/server", async () => ({ status: "ok" }));
+    
 
-
+     fastify.setErrorHandler((err, req, reply) => {
+  if (err.validation) {
+    fastify.log.warn(
+      { url: req.url, body: req.body, validation: err.validation },
+      "Validation error"
+    );
+    return reply.code(400).send({
+      message: "Validation error",
+      details: err.validation,
+    });
+  }
+  fastify.log.error({ err }, "Unhandled error");
+  reply.code(err.statusCode ?? 500).send({ message: "Internal Server Error" });
+});
 
 await fastify.ready();
 fastify.log.info("\n" + fastify.printRoutes());
 
-
-  // fastify.setErrorHandler((err, _req, reply) => {
-  //   fastify.log.error({ err }, "Unhandled error");
-  //   reply.code(err.statusCode ?? 500).send({ message: "Internal Server Error" });
-  // });
-
-
-    return fastify
+return fastify
     
 }
 

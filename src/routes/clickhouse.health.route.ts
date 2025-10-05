@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
 
-const DB  = process.env.CLICKHOUSE_DB  || "nadia_db_clickhouse";
+const DB = process.env.CLICKHOUSE_DB || "nadia_db_clickhouse";
 const TBL = process.env.CLICKHOUSE_TABLE || "stat_event";
 
-export default async function clickhouseDebugRoutes(fastify: FastifyInstance) {
+export default async function clickhouseHealthRoutes(fastify: FastifyInstance) {
   const requireCH = () => {
     const ch = fastify.clickhouse;
     if (!ch) {
@@ -17,13 +17,13 @@ export default async function clickhouseDebugRoutes(fastify: FastifyInstance) {
     return ch;
   };
 
-  fastify.get("/debug/ch/ping", async () => {
+  fastify.get("/health/clickhouse", async () => {
     const ch = requireCH();
     await ch.ping();
-    return { ok: true };
+    return { status: "ok", message: "ClickHouse reachable" };
   });
 
-  fastify.get("/debug/ch/tables", async () => {
+  fastify.get("/health/clickhouse/tables", async () => {
     const ch = requireCH();
     const rs = await ch.query({
       query: `SELECT name FROM system.tables WHERE database = {db:String}`,
@@ -33,26 +33,28 @@ export default async function clickhouseDebugRoutes(fastify: FastifyInstance) {
     return rs.json<{ name: string }[]>();
   });
 
-  fastify.post("/debug/ch/insert-one", async () => {
+  fastify.post("/health/clickhouse/insert", async () => {
     const ch = requireCH();
     await ch.insert({
       table: `\`${DB}\`.\`${TBL}\``,
-      values: [{
-        event: "debug",
-        userId: "tester",
-        page: "/debug",
-        bidder: "testBidder",
-        creativeId: "crea-1",
-        adUnitCode: "adunit-1",
-        geo: "UA",
-        cpm: 0,
-      }],
+      values: [
+        {
+          event: "debug",
+          userId: "tester",
+          page: "/health-check",
+          bidder: "testBidder",
+          creativeId: "crea-1",
+          adUnitCode: "adunit-1",
+          geo: "UA",
+          cpm: 0,
+        },
+      ],
       format: "JSONEachRow",
     });
-    return { ok: true };
+    return { status: "ok", inserted: true };
   });
 
-  fastify.get("/debug/ch/select", async () => {
+  fastify.get("/health/clickhouse/latest", async () => {
     const ch = requireCH();
     const rs = await ch.query({
       query: `SELECT * FROM \`${DB}\`.\`${TBL}\` ORDER BY ts DESC LIMIT 10`,
