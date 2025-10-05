@@ -6,7 +6,7 @@ const fetchFeedRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.route({
     method: ['POST', 'GET'],
-    url: '/feeds/refresh',
+    url: '/feed/refresh',
     schema: {
       tags: ['feed'],
       summary: 'Force refresh all feeds',

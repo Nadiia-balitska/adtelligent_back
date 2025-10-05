@@ -18,6 +18,7 @@ model Feed {
   title     String?
   items     Json
   fetchedAt DateTime @default(now())
+   @@map("Feed")
 }
 
 model User {
@@ -62,4 +63,30 @@ model ImpressionCounter {
   count      Int     @default(0)
 
   @@unique([userId, lineItemId])
+}
+
+model Analytics {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  event      String
+  timestamp  DateTime
+  page       String?
+  userAgent  String?
+  auctionId  String?
+  adUnitCode String?
+  bidder     String?
+  cpm        Float?
+  creativeId String?
+  size       String?
+  currency   String?
+}
+
+model ReportView {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  name      String
+  config    Json
+  createdAt DateTime @default(now())
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
 }

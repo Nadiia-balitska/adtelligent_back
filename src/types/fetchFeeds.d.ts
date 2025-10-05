@@ -12,5 +12,11 @@ declare module "fastify" {
   JWT_SECRET: string;
   FEEDS_LIST?: string;
   FEEDS_CRON?: string;
+  CLICKHOUSE_DB?: string;
+  CLICKHOUSE_TABLE?: string;
+  CH_BUFFER_MAX?: number;
+  CH_FLUSH_MS?: number;
+  DISABLE_FEEDS?: boolean | number;
+ };
 };
-}
+

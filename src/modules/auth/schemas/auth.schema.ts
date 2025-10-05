@@ -1,5 +1,13 @@
 import { FromSchema } from "json-schema-to-ts";
 
+export const errorResponseSchema = {
+  type: "object",
+  properties: {
+    message: { type: "string" },
+  },
+  required: ["message"],
+} as const;
+
 export const registerSchema = {
   body: {
     type: "object",
@@ -17,6 +25,10 @@ export const registerSchema = {
       properties: { token: { type: "string" } },
       required: ["token"],
     },
+    400: errorResponseSchema,
+    401: errorResponseSchema,
+    409: errorResponseSchema,
+    500: errorResponseSchema,
   },
 } as const;
 
@@ -32,7 +44,6 @@ export const loginSchema = {
   },
   response: registerSchema.response,
 } as const;
-
 
 export type AuthBody = FromSchema<typeof registerSchema.body>;
 export type AuthReply = FromSchema<typeof registerSchema.response[200]>;

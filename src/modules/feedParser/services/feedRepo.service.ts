@@ -9,29 +9,40 @@ export function createFeedRepo(prisma: PrismaClient) {
     return (doc as unknown as FeedDoc) ?? null;
   }
 
-  async function upsert(feed: ParsedFeed): Promise<void> {
-    const data: {
-      url: string;
-      title: string | null;
-      items: Prisma.InputJsonValue;
-      fetchedAt: Date;
-    } = {
-      url: feed.url,
-      title: feed.title ?? null,
-      items: feed.items as Prisma.InputJsonValue,
-      fetchedAt: feed.fetchedAt ? new Date(feed.fetchedAt) : new Date(),
-    };
+ async function upsert(feed: ParsedFeed): Promise<void> {
+  const limitedItems = (feed.items ?? []).slice(-20);
 
-    await prisma.feed.upsert({
-      where: { url: data.url },
-      update: {
-        title: data.title,
-        items: data.items,
-        fetchedAt: data.fetchedAt,
+  const data: {
+    url: string;
+    title: string | null;
+    items: Prisma.InputJsonValue;
+    fetchedAt: Date;
+  } = {
+    url: feed.url,
+    title: feed.title ?? null,
+    items: limitedItems as Prisma.InputJsonValue,
+    fetchedAt: feed.fetchedAt ? new Date(feed.fetchedAt) : new Date(),
+  };
+
+  await prisma.$runCommandRaw({
+    update: "Feed",
+    updates: [
+      {
+        q: { url: data.url },
+        u: {
+          $set: {
+            title: data.title,
+            items: data.items,
+            fetchedAt: data.fetchedAt,
+          },
+          $setOnInsert: { url: data.url },
+        },
+        upsert: true,
       },
-      create: data,
-    });
-  }
+    ],
+  });
+}
+
 
   return { findByUrl, upsert };
 }

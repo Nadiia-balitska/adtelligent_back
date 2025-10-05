@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { getAd } from "../services/adServer.service.js";
+import { getAd } from "../modules/addServer/services/adServer.service.js";
 
 async function adServerRoute(fastify) {
-  fastify.get("/api/balitska/health", async () => ({ ok: true }));
 
-  fastify.post("/api/balitska/get", async (request, reply) => {
+
+  fastify.get("/balitska/health", async () => ({ ok: true }));
+
+  fastify.post("/balitska/get", async (request, reply) => {
     let userId = request.cookies?.ad_uid;
     if (!userId) {
       userId = randomUUID();
