@@ -47,7 +47,7 @@ export interface FastifyClickhouse {
     json(): Promise<any>;
     text(): Promise<string>;
   }>;
-  ping(): Promise<void>;
+   ping(): Promise<void>;
 }
 
 declare module "fastify" {
@@ -57,12 +57,3 @@ declare module "fastify" {
 }
 
 
-type EnvConfig = {
-  CLICKHOUSE_DB?: string;
-  CLICKHOUSE_TABLE?: string;
-  CLICKHOUSE_URL?: string;
-  CLICKHOUSE_USER?: string;
-  CLICKHOUSE_PASSWORD?: string;
-  CLICKHOUSE_CONNECT_TIMEOUT_MS?: number | string;
-  CLICKHOUSE_MAX_INIT_MS?: number | string;
-};

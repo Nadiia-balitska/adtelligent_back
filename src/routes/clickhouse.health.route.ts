@@ -1,47 +1,34 @@
 import type { FastifyInstance } from "fastify";
 
-const DB = process.env.CLICKHOUSE_DB || "nadia_db_clickhouse";
-const TBL = process.env.CLICKHOUSE_TABLE || "stat_event";
-
 export default async function clickhouseHealthRoutes(fastify: FastifyInstance) {
-  const requireCH = () => {
-    const ch = fastify.clickhouse;
-    if (!ch) {
-      if ((fastify as any).httpErrors) {
-        throw fastify.httpErrors.serviceUnavailable("ClickHouse is not configured");
-      }
-      const err = new Error("ClickHouse is not configured") as Error & { statusCode?: number };
-      err.statusCode = 503;
-      throw err;
-    }
-    return ch;
-  };
+  const DB  = fastify.config?.CLICKHOUSE_DB  ?? process.env.CLICKHOUSE_DB  ?? "";
+  const TBL = fastify.config?.CLICKHOUSE_TABLE ?? process.env.CLICKHOUSE_TABLE ?? "";
 
-  fastify.get("/health/clickhouse", async () => {
-    const ch = requireCH();
+  const ch = fastify.clickhouse; 
+
+  fastify.get("/health/ch/ping", async () => {
     await ch.ping();
-    return { status: "ok", message: "ClickHouse reachable" };
+    return { ok: true };
   });
 
-  fastify.get("/health/clickhouse/tables", async () => {
-    const ch = requireCH();
+  fastify.get("/health/ch/tables", async () => {
     const rs = await ch.query({
       query: `SELECT name FROM system.tables WHERE database = {db:String}`,
       query_params: { db: DB },
       format: "JSONEachRow",
     });
-    return rs.json<{ name: string }[]>();
+    const rows = (await rs.json()) as Array<{ name: string }>;
+    return rows;
   });
 
-  fastify.post("/health/clickhouse/insert", async () => {
-    const ch = requireCH();
+  fastify.post("/health/ch/insert-one", async () => {
     await ch.insert({
       table: `\`${DB}\`.\`${TBL}\``,
       values: [
         {
           event: "debug",
           userId: "tester",
-          page: "/health-check",
+          page: "/debug",
           bidder: "testBidder",
           creativeId: "crea-1",
           adUnitCode: "adunit-1",
@@ -51,15 +38,15 @@ export default async function clickhouseHealthRoutes(fastify: FastifyInstance) {
       ],
       format: "JSONEachRow",
     });
-    return { status: "ok", inserted: true };
+    return { ok: true };
   });
 
-  fastify.get("/health/clickhouse/latest", async () => {
-    const ch = requireCH();
+  fastify.get("/health/ch/select", async () => {
     const rs = await ch.query({
       query: `SELECT * FROM \`${DB}\`.\`${TBL}\` ORDER BY ts DESC LIMIT 10`,
       format: "JSONEachRow",
     });
-    return rs.json<Record<string, unknown>[]>();
+    const rows = (await rs.json()) as Array<Record<string, unknown>>;
+    return rows;
   });
 }

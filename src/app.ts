@@ -23,7 +23,6 @@ const fastify = Fastify({logger: isProd
     trustProxy: true})
 
 
-    await fastify.register(staticPlugin);
 
     await  fastify.register(configPlugin)
 
