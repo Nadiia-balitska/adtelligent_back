@@ -4,24 +4,59 @@ import { createFeedService } from "../modules/feedParser/services/feed.service";
 import { createFeedRepo } from "../modules/feedParser/services/feedRepo.service";
 
 export default fp(async (fastify) => {
-  cron.schedule("*/15 * * * *", async () => {
-    try {
-      fastify.log.info("[CRON] Refreshing feeds...");
+  const urls = [
+    "https://www.pravda.com.ua/rss/",
+    "https://www.epravda.com.ua/rss/",
+  ];
 
-      const repo = createFeedRepo(fastify.prisma);
-      const service = createFeedService(repo);
+  let running = false;
 
-      const urls = [
-        "https://www.pravda.com.ua/rss/",
-        "https://www.epravda.com.ua/rss/",
-      ];
-
-      for (const url of urls) {
-        await service.getFeed(url, true); 
-        fastify.log.info(`[CRON] Refreshed: ${url}`);
+  const task = cron.schedule(
+    "*/15 * * * *",
+    async () => {
+      if (running) {
+        fastify.log.warn("[CRON] Previous run still in progress, skipping.");
+        return;
       }
+      running = true;
+
+      try {
+        fastify.log.info("[CRON] Refreshing feeds...");
+
+        const repo = createFeedRepo(fastify.prisma);
+        const service = createFeedService(repo);
+
+        const results = await Promise.allSettled(
+          urls.map(async (url) => {
+            try {
+              await service.getFeed(url, true);
+              fastify.log.info(`[CRON] Refreshed: ${url}`);
+            } catch (err) {
+              fastify.log.error({ err, url }, "[CRON] FEED ERR");
+            }
+          })
+        );
+
+        const rejected = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+        if (rejected.length) {
+          fastify.log.warn(`[CRON] Completed with ${rejected.length} errors`);
+        } else {
+          fastify.log.info("[CRON] Completed successfully");
+        }
+      } catch (err) {
+        fastify.log.error({ err }, "[CRON] Top-level failure");
+      } finally {
+        running = false;
+      }
+    },
+    { timezone: "Europe/Oslo" }
+  );
+
+  fastify.addHook("onClose", async () => {
+    try {
+      task.stop();
     } catch (err) {
-      fastify.log.error(`[CRON] Failed: ${err.message}`);
+      fastify.log.error({ err }, "[CRON] Failed to stop task");
     }
   });
 });

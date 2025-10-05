@@ -15,11 +15,22 @@ export const EnvSchema = {
         FEEDS_LIST: { type: "string"},
         FEEDS_CRON: { type: "string"},
         NODE_ENV:{ type: "string"},
+         CLICKHOUSE_URL: { type: "string", format: "uri", nullable: true},
+    CLICKHOUSE_USER: { type: "string" },
+    CLICKHOUSE_PASSWORD: { type: "string" },
+    CLICKHOUSE_DB: { type: "string" },
+    CLICKHOUSE_TABLE: { type: "string" },
+    CH_BUFFER_MAX: { type: "number", default: 2000 },
+    CH_FLUSH_MS: { type: "number", default: 10000 },    
+    
 
 
 
     },
-    required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET", "NODE_ENV"],
+    required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET", "NODE_ENV",  "CLICKHOUSE_URL",
+    "CLICKHOUSE_USER",
+    "CLICKHOUSE_PASSWORD",
+    "CLICKHOUSE_DB"],
     additionalProperties: false,
 } as const;
 

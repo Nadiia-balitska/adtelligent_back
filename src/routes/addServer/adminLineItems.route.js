@@ -40,7 +40,7 @@ async function adminLineItemsRoute(fastify) {
         </style>
 
         <div class="card">
-          <form id="f" action="/api/line-items" method="POST" enctype="multipart/form-data" novalidate>
+          <form id="f" action="/line-items" method="POST" enctype="multipart/form-data" novalidate>
             <div class="row">
               <div class="field">
                 <label>Розмір (WxH)</label>
@@ -102,7 +102,7 @@ async function adminLineItemsRoute(fastify) {
       const loadItems = async () => {
         itemsBox.textContent = 'Завантаження...';
         try {
-          const res = await fetch('/api/line-items');
+          const res = await fetch('/line-items');
           const arr = await res.json();
           itemsBox.innerHTML = (arr || []).map(it => \`
             <div class="item">

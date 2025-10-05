@@ -10,7 +10,7 @@ export async function getFeedDataRoutes(fastify: FastifyInstance) {
   const route = fastify.withTypeProvider<JsonSchemaToTsProvider>();
 
   route.get<{ Querystring: GetFeedQuery; Reply: GetFeedReply }>(
-     "/api/feed",
+     "/feed",
     { schema },
     async (req, reply) => {
       const feedUrl =

@@ -2,8 +2,9 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
-import clickHouse from "./clickHouse";
 import fastifyStatic from '@fastify/static';
+import staticPlugin from "./plugins/static.plugin";
+
 export type AppOptions = Partial<FastifyServerOptions>
 
 async function buildApp(options: AppOptions = {}){
@@ -21,8 +22,9 @@ const fastify = Fastify({logger: isProd
         },
     trustProxy: true})
 
+
+
     await  fastify.register(configPlugin)
-    await  fastify.register(clickHouse)
 
 
     try {
@@ -44,62 +46,38 @@ const fastify = Fastify({logger: isProd
         throw error;
     }
     
-  fastify.get("/health/server", async () => ({ status: "ok" }));
 
 
-
-  await fastify.register(AutoLoad, 
+    await fastify.register(AutoLoad,
     { dir: join(__dirname, "routes"),
-    options,
-    dirNameRoutePrefix: false, 
+      options,
     ignorePattern: /^((?!route).)*$/ 
   });
+ 
 
-    await fastify.register(fastifyStatic, {
-  root: join(process.cwd(), 'public'),
-  prefix: '/',
+  fastify.get("/health/server", async () => ({ status: "ok" }));
+    
+
+     fastify.setErrorHandler((err, req, reply) => {
+  if (err.validation) {
+    fastify.log.warn(
+      { url: req.url, body: req.body, validation: err.validation },
+      "Validation error"
+    );
+    return reply.code(400).send({
+      message: "Validation error",
+      details: err.validation,
+    });
+  }
+  fastify.log.error({ err }, "Unhandled error");
+  reply.code(err.statusCode ?? 500).send({ message: "Internal Server Error" });
 });
 
-  fastify.setErrorHandler((err, _req, reply) => {
-    fastify.log.error({ err }, "Unhandled error");
-    reply.code(err.statusCode ?? 500).send({ message: "Internal Server Error" });
-  });
+await fastify.ready();
+fastify.log.info("\n" + fastify.printRoutes());
 
-
-  // це всьо перенети в роути окремі.
-//   fastify.get("/stat", async () => {
-//     const rows=fastify.clickHouse.query({
-// query: `SELECT * FROM system.metrics LIMIT 100`,
-// format: "JSONEachRow"
-
-//     })
-//     return rows.json();
-//   });
-
-// const cash = new Set();
-// const timer = Date.now()
-
-// fastify.post("/stat/events", async (request, reply) => {
-//   const { event, geo, userId } = request.body;
-
-//   cash.add({ event, geo, userId });
-
-//   if (cash.size > 2000 || Date.now() - timer > 10000) {
-//     await fastify.clickHouse.insert({
-//       table: "stat_event",
-//       values: Array.from(cash).map(item => ({
-//         event: item.event,
-//         geo: item.geo,
-//         userId: item.userId
-//       }))
-//     });
-//     cash.clear();
-//   }
-
-//   reply.send({ status: "event received" });
-// });
-
-    return fastify
+return fastify
+    
 }
 
 export default buildApp

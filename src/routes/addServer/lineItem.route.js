@@ -2,17 +2,17 @@ import multipart from "@fastify/multipart";
 import { mkdir, stat } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { join } from "node:path";
-import { createLineItem, listLineItems } from "../services/lineItem.service.js";
+import { createLineItem, listLineItems } from "../modules/addServer/services/lineItem.service.js";
 
 async function lineItemRoute(fastify) {
   await fastify.register(multipart);
 
-  fastify.get("/api/line-items", async (_req, reply) => {
+  fastify.get("/line-items", async (_req, reply) => {
     const items = await listLineItems(fastify);
     reply.send(items);
   });
 
-  fastify.post("/api/line-items", async (request, reply) => {
+  fastify.post("/line-items", async (request, reply) => {
     const file = await request.file(); 
     if (!file) {
       return reply.code(400).send({ message: "Поле файлу 'creative' обов'язкове" });
