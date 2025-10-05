@@ -68,10 +68,17 @@ function buildWhere(params: URLSearchParams): { whereSql: string; args: ClickHou
 
 
 const analyticsRoute: FastifyPluginAsync = async (fastify) => {
-  const DB = fastify.config.CLICKHOUSE_DB ?? process.env.CLICKHOUSE_DB;
-  const TABLE = fastify.config.CLICKHOUSE_TABLE ?? process.env.CLICKHOUSE_TABLE;
-  const BUFFER_MAX = fastify.config.CH_BUFFER_MAX ?? process.env.CH_BUFFER_MAX ?? 2000;
-  const FLUSH_MS = fastify.config.CH_FLUSH_MS ?? process.env.CH_FLUSH_MS ?? 10000;
+  const config = fastify.config as {
+    CLICKHOUSE_DB?: string;
+    CLICKHOUSE_TABLE?: string;
+    CH_BUFFER_MAX?: number;
+    CH_FLUSH_MS?: number;
+  };
+
+  const DB = config.CLICKHOUSE_DB ?? process.env.CLICKHOUSE_DB;
+  const TABLE = config.CLICKHOUSE_TABLE ?? process.env.CLICKHOUSE_TABLE;
+  const BUFFER_MAX = Number(config.CH_BUFFER_MAX ?? process.env.CH_BUFFER_MAX ?? 2000);
+  const FLUSH_MS = Number(config.CH_FLUSH_MS ?? process.env.CH_FLUSH_MS ?? 10000);
 
   if (!DB || !TABLE) {
     fastify.log.warn("CLICKHOUSE_DB / CLICKHOUSE_TABLE are not set — analytics routes may fail.");

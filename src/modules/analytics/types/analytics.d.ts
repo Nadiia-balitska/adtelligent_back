@@ -29,6 +29,8 @@ export interface ReportQuery {
   page_size?: number;
 }
 
+
+
 export type ClickHouseQueryArgs = Record<string, string | number | null | undefined>;
 
 export interface FastifyClickhouse {
@@ -41,7 +43,11 @@ export interface FastifyClickhouse {
     query: string;
     format?: "JSONEachRow";
     query_params?: ClickHouseQueryArgs;
-  }): Promise<{ json(): Promise<any[]>; text(): Promise<string> }>;
+  }): Promise<{
+    json(): Promise<any>;
+    text(): Promise<string>;
+  }>;
+  ping(): Promise<void>;
 }
 
 declare module "fastify" {
@@ -51,19 +57,12 @@ declare module "fastify" {
 }
 
 
-export type ClickHouseQueryArgs = Record<string, string | number | null | undefined>;
-
-export type FastifyClickhouse = {
-  insert(input: { table: string; values: unknown[]; format?: "JSONEachRow" }): Promise<void>;
-  query(input: {
-    query: string;
-    format?: "JSONEachRow";
-    query_params?: ClickHouseQueryArgs;
-  }): Promise<{ json(): Promise<unknown[]>; text(): Promise<string> }>;
+type EnvConfig = {
+  CLICKHOUSE_DB?: string;
+  CLICKHOUSE_TABLE?: string;
+  CLICKHOUSE_URL?: string;
+  CLICKHOUSE_USER?: string;
+  CLICKHOUSE_PASSWORD?: string;
+  CLICKHOUSE_CONNECT_TIMEOUT_MS?: number | string;
+  CLICKHOUSE_MAX_INIT_MS?: number | string;
 };
-
-declare module "fastify" {
-  interface FastifyInstance {
-    clickhouse?: FastifyClickhouse | null;
-  }
-}
