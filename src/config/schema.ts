@@ -21,8 +21,8 @@ export const EnvSchema = {
     CLICKHOUSE_DB: { type: "string" },
     CLICKHOUSE_TABLE: { type: "string" },
     CH_BUFFER_MAX: { type: "number", default: 2000 },
-    CH_FLUSH_MS: { type: "number", default: 10000 },   
-};
+    CH_FLUSH_MS: { type: "number", default: 10000 },    
+    
 
 
 
