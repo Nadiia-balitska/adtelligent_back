@@ -18,7 +18,8 @@ export async function getFeedDataRoutes(fastify: FastifyInstance) {
         fastify.config?.FEED_DEFAULT_URL ??
         FALLBACK_FEED_URL;
 
-      const isForce = req.query.force === 1;
+      const isForce = String((req.query as any).force ?? '') === '1';
+
 
       const repo = createFeedRepo(fastify.prisma);    
       const service = createFeedService(repo);

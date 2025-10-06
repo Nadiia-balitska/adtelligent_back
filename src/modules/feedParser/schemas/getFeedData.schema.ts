@@ -8,7 +8,13 @@ export const schema = {
     type: "object",
     properties: {
       url:   { type: "string", format: "uri", nullable: true },
-      force: { type: "integer", enum: [0, 1], default: 0 }, 
+      force: {
+  anyOf: [
+    { type: "integer", enum: [0, 1], default: 0 },
+    { type: "string", enum: ["0", "1"] }
+  ]
+}
+
     },
     additionalProperties: false,
   },

@@ -2,8 +2,6 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
-import fastifyStatic from '@fastify/static';
-import staticPlugin from "./plugins/static.plugin";
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -20,7 +18,14 @@ const fastify = Fastify({logger: isProd
             options: { colorize: true, singleLine: true, translateTime: "HH:MM:ss" },
           },
         },
-    trustProxy: true})
+    trustProxy: true,
+   ajv: {
+    customOptions: {
+      coerceTypes: true,
+      useDefaults: true,
+      removeAdditional: true
+    }
+  }})
 
 
 
