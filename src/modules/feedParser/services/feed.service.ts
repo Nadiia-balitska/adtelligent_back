@@ -19,11 +19,13 @@ function toReply(src: any): GetFeedReply {
       id: String(i.id ?? i.guid ?? i.link),
       title: String(i.title ?? ""),
       link: String(i.link ?? ""),
-      content: i.content ?? i.contentSnippet ?? null,
+      content: typeof i.content === "string" ? i.content : (i.contentSnippet ?? null),
+      image: i.image ?? null,
       pubDate: i.pubDate ? new Date(i.pubDate).toISOString() : null,
     })),
   };
 }
+
 
 export function createFeedService(repo: FeedRepo) {
   async function getFeed(feedUrl: string, isForce: boolean): Promise<GetFeedReply> {

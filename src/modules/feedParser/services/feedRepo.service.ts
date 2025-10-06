@@ -10,7 +10,7 @@ export function createFeedRepo(prisma: PrismaClient) {
   }
 
  async function upsert(feed: ParsedFeed): Promise<void> {
-  const limitedItems = (feed.items ?? []).slice(-20);
+  const limitedItems = (feed.items ?? []).slice(-10);
 
   const data: {
     url: string;

@@ -34,6 +34,7 @@ export const schema = {
               title: { type: "string" },
               link: { type: "string" },
               content: { type: "string", nullable: true },
+               image: { type: "string", nullable: true },   
               pubDate: { type: "string", nullable: true, format: "date-time" },
             },
             required: ["id", "title", "link"],
