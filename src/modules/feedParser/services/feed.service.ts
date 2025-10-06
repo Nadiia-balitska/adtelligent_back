@@ -29,17 +29,18 @@ export function createFeedService(repo: FeedRepo) {
   async function getFeed(feedUrl: string, isForce: boolean): Promise<GetFeedReply> {
     if (isForce) {
       const parsed = await parseFeed(feedUrl);
-      await repo.upsert(parsed);
+      try { await repo.upsert(parsed); } catch {}
       return toReply(parsed);
     }
 
-    const cached = await repo.findByUrl(feedUrl);
+    let cached: FeedDoc | null = null;
+    try { cached = await repo.findByUrl(feedUrl); } catch {}
+
     if (cached) return toReply(cached);
 
     const parsed = await parseFeed(feedUrl);
-    await repo.upsert(parsed);
+    try { await repo.upsert(parsed); } catch {}
     return toReply(parsed);
   }
-
   return { getFeed };
 }

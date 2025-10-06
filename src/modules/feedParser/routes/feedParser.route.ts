@@ -29,7 +29,6 @@ route.get<{ Querystring: GetFeedQuery; Reply: GetFeedReply | { error: string; me
       const service = createFeedService(repo);
 
       const result = await service.getFeed(feedUrl, isForce);
-      fastify.log.info({ count: result.items.length }, "GET /feed ok");
       return reply.send(result);
     } catch (err: any) {
       fastify.log.error({ err }, "GET /feed failed");
