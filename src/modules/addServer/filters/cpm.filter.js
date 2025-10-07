@@ -1,4 +1,8 @@
-export function cpmFilter(items, cpm) {
-  if (!cpm) return items;
-  return items.filter(i => cpm >= i.minCPM && cpm <= i.maxCPM);
+export function cpmFilter(lineItems, { cpm }) {
+  if (typeof cpm !== "number") return lineItems;
+
+  return lineItems.filter(lineItem => 
+    cpm >= lineItem.minCPM && cpm <= lineItem.maxCPM
+  );
 }
+  

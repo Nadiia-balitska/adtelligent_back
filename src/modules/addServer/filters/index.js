@@ -9,9 +9,9 @@ const pipeline = [geoFilter, sizeFilter, adTypeFilter, cpmFilter, frequencyFilte
 export async function runFilters(items, ctx) {
   let acc = items;
   for (const filter of pipeline) {
-    const out = filter.length === 2 ? filter(acc, ctx) : filter(acc, ctx); 
+    const out = filter(acc, ctx);
     acc = out instanceof Promise ? await out : out;
-    if (acc.length === 0) break;
+    if (!acc.length) break;
   }
   return acc;
 }

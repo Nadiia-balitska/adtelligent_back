@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { createFeedRepo } from '../feedParser/services/feedRepo.service';
-import { createFeedService } from '../feedParser/services/feed.service';
+import { createFeedRepo } from '../../feedParser/services/feedRepo.service';
+import { createFeedService } from '../../feedParser/services/feed.service';
 
 
 export async function refreshFeeds(app: FastifyInstance, urls: string[]) {
