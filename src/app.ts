@@ -28,7 +28,7 @@ const fastify = Fastify({logger: isProd
   }})
 
 
-
+    
     await  fastify.register(configPlugin)
 
 

@@ -1,11 +1,12 @@
-export function geoFilter(items, { geo }) {
-  if (!geo) return items;
-  const G = String(geo).toUpperCase();
-  return items.filter(i =>
-    String(i.geo || "")
+export function geoFilter(lineItems, { geo }) {
+  if (!geo) return lineItems;
+
+  const normalizedGeo = String(geo).toUpperCase();
+
+  return lineItems.filter(lineItem =>
+    String(lineItem.geo || "")
       .split(",")
-      .map(s => s.trim().toUpperCase())
-      .filter(Boolean)
-      .includes(G)
+      .map(country => country.trim().toUpperCase())
+      .includes(normalizedGeo)
   );
 }
