@@ -1,11 +1,16 @@
-async function adminLineItemsRoute(fastify) {
+export default async function adminLineItemsRoute(fastify) {
   fastify.get("/admin/line-items/new", async (_req, reply) => {
     const js = `
 class LineItemForm extends HTMLElement {
   constructor() {
     super();
-    const root = this.attachShadow({ mode: 'open' });
-    root.innerHTML = \`
+
+    const apiOriginAttr = this.getAttribute('data-api-origin') || '';
+    const apiOrigin = String(apiOriginAttr).replace(/\\/$/, '');
+
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+
+    shadowRoot.innerHTML = \`
       <style>
         .card { max-width: 880px; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.06); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
         .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
@@ -22,8 +27,9 @@ class LineItemForm extends HTMLElement {
         .item { padding:8px 0; border-bottom:1px dashed #e5e7eb; }
         a { color:#2563eb; text-decoration:none; }
       </style>
+
       <div class="card">
-        <form id="f" action="/line-items" method="POST" enctype="multipart/form-data" novalidate>
+        <form id="lineItemForm" enctype="multipart/form-data" novalidate>
           <div class="row">
             <div class="field">
               <label>Розмір (WxH)</label>
@@ -34,6 +40,7 @@ class LineItemForm extends HTMLElement {
               <input name="geo" placeholder="NO" />
             </div>
           </div>
+
           <div class="row">
             <div class="field">
               <label>Мінімальний CPM</label>
@@ -44,6 +51,7 @@ class LineItemForm extends HTMLElement {
               <input name="maxCPM" type="number" step="0.01" value="0.80" required />
             </div>
           </div>
+
           <div class="row">
             <div class="field">
               <label>Тип реклами</label>
@@ -57,82 +65,98 @@ class LineItemForm extends HTMLElement {
               <input name="frequencyCap" type="number" min="1" value="3" />
             </div>
           </div>
+
           <div class="field">
             <label>Креатив (файл) <span class="muted">(jpg/png/gif або html)</span></label>
             <input name="creative" type="file" accept=".jpg,.jpeg,.png,.gif,.html,.htm" required />
           </div>
+
           <button type="submit">Створити</button>
-          <span id="msg" class="msg"></span>
+          <span id="message" class="msg"></span>
         </form>
 
         <div class="list">
-          <button id="reload" style="margin-bottom:8px;">Оновити список</button>
-          <div id="items"></div>
+          <button id="reloadList" style="margin-bottom:8px;">Оновити список</button>
+          <div id="itemsContainer"></div>
         </div>
       </div>
     \`;
 
-    const $ = (sel) => root.querySelector(sel);
-    const form = root.getElementById('f');
-    const msg = root.getElementById('msg');
-    const itemsBox = root.getElementById('items');
-    const reloadBtn = root.getElementById('reload');
+    const formEl = shadowRoot.getElementById('lineItemForm');
+    const messageEl = shadowRoot.getElementById('message');
+    const itemsContainer = shadowRoot.getElementById('itemsContainer');
+    const reloadButton = shadowRoot.getElementById('reloadList');
 
-    const loadItems = async () => {
-      itemsBox.textContent = 'Завантаження...';
+    const listEndpoint = apiOrigin + '/line-items';
+    const createEndpoint = apiOrigin + '/line-items';
+
+    async function loadLineItems() {
+      itemsContainer.textContent = 'Завантаження...';
       try {
-        const res = await fetch('/line-items');
-        const arr = await res.json();
-        itemsBox.innerHTML = (arr || []).map(it => \`
+        const response = await fetch(listEndpoint, { credentials: 'include' });
+        const items = await response.json();
+
+        itemsContainer.innerHTML = (items || []).map(item => \`
           <div class="item">
-            <div><strong>ID:</strong> \${it.id}</div>
-            <div><strong>size:</strong> \${it.size} |
-                <strong>CPM:</strong> \${it.minCPM}—\${it.maxCPM} |
-                <strong>geo:</strong> \${it.geo || '-'}
+            <div><strong>ID:</strong> \${item.id}</div>
+            <div>
+              <strong>size:</strong> \${item.size} |
+              <strong>CPM:</strong> \${item.minCPM}—\${item.maxCPM} |
+              <strong>geo:</strong> \${item.geo || '-'}
             </div>
-            <div><strong>creative:</strong> <a href="\${it.creativePath}" target="_blank" rel="noopener">\${it.creativePath}</a></div>
-            <div><strong>active:</strong> \${it.active ? 'true' : 'false'}</div>
+            <div>
+              <strong>creative:</strong>
+              <a href="\${apiOrigin}\${item.creativePath}" target="_blank" rel="noopener">
+                \${item.creativePath}
+              </a>
+            </div>
+            <div><strong>active:</strong> \${item.active ? 'true' : 'false'}</div>
           </div>\`).join('');
-      } catch (e) {
-        itemsBox.innerHTML = '<span class="err">Помилка завантаження</span>';
+      } catch {
+        itemsContainer.innerHTML = '<span class="err">Помилка завантаження</span>';
       }
-    };
+    }
 
-    reloadBtn?.addEventListener('click', loadItems);
+    reloadButton?.addEventListener('click', loadLineItems);
 
-    form?.addEventListener('submit', async (ev) => {
-      ev.preventDefault();
-      msg.textContent = 'Відправка...';
-      msg.className = 'msg';
+    formEl?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      messageEl.textContent = 'Відправка...';
+      messageEl.className = 'msg';
 
       try {
-        const fd = new FormData(form);
-        const res = await fetch(form.action, { method: 'POST', body: fd });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          msg.textContent = 'Помилка: ' + (err.message || res.statusText);
-          msg.className = 'msg err';
+        const formData = new FormData(formEl);
+        const response = await fetch(createEndpoint, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          messageEl.textContent = 'Помилка: ' + (error.message || response.statusText);
+          messageEl.className = 'msg err';
           return;
         }
-        msg.textContent = 'Створено!';
-        msg.className = 'msg ok';
-        form.reset();
-        loadItems();
-      } catch (e) {
-        msg.textContent = 'Помилка мережі';
-        msg.className = 'msg err';
+
+        messageEl.textContent = 'Створено!';
+        messageEl.className = 'msg ok';
+        formEl.reset();
+        loadLineItems();
+      } catch {
+        messageEl.textContent = 'Помилка мережі';
+        messageEl.className = 'msg err';
       }
     });
 
-    loadItems();
+    loadLineItems();
   }
 }
+
 if (!customElements.get('line-item-form')) {
   customElements.define('line-item-form', LineItemForm);
 }
-    `;
+`;
     reply.header("Content-Type", "application/javascript; charset=utf-8").send(js);
   });
 }
-
-export default adminLineItemsRoute;
