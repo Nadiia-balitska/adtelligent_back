@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { registerFeedsCron } from '../schedule';
+import { registerFeedsCron } from '../services/schedule';
 
 const fetchFeedRoutes: FastifyPluginAsync = async (fastify) => {
   const cronCtl = registerFeedsCron(fastify);
