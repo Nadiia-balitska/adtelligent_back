@@ -13,6 +13,7 @@ export const EnvSchema = {
         FEEDS_COLLECTION: {type: 'string'},
         FEEDS_LIST: { type: "string"},
         FEEDS_CRON: { type: "string"},
+
         TZ:{ type: "string" },
         VITE_API_URL: { type: "string", format: "uri", nullable: true },
         JWT_SECRET: { type: "string", minLength: 16 },
@@ -26,6 +27,7 @@ export const EnvSchema = {
         CH_BUFFER_MAX: { type: "number", default: 2000 },
         CH_FLUSH_MS: { type: "number", default: 10000 },   
    
+
 
     },
     required: ['PORT', 'HOST', "MONGODB_URI", "JWT_SECRET", "NODE_ENV",  "CLICKHOUSE_URL",

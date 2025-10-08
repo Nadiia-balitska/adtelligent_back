@@ -2,6 +2,15 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
+import fs from 'fs/promises'
+import fastifyMultipart from "@fastify/multipart";
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+import otelConsolePlugin from "./otel/plugins/otel-console.plugin";
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -9,6 +18,8 @@ async function buildApp(options: AppOptions = {}){
 
 
 const isProd = process.env.NODE_ENV === "production";
+
+
 
 const fastify = Fastify({logger: isProd
       ? true
@@ -27,9 +38,24 @@ const fastify = Fastify({logger: isProd
     }
   }})
 
+fastify.register(fastifyMultipart);
 
-    
-    await  fastify.register(configPlugin)
+// await fastify.register(otelConsolePlugin)
+
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+
+=======
+const sdk= initOpenTelemetry()
+>>>>>>> Stashed changes
+   
+await  fastify.register(configPlugin)
+
+=======
+const sdk= initOpenTelemetry()
+   
+await  fastify.register(configPlugin)
+>>>>>>> Stashed changes
 
 
     try {
@@ -59,7 +85,16 @@ const fastify = Fastify({logger: isProd
     ignorePattern: /^((?!route).)*$/ 
   });
  
-
+// fastify.get('/otel/test', async () => {
+//   const tracer = trace.getTracer('demo')
+//   const span = tracer.startSpan('manual-span')
+//   const meter = metrics.getMeter('demo')
+//   const c = meter.createCounter('test_counter')
+//   c.add(1, { route: '/otel/test' })
+//   await fs.writeFile('./otel-demo.txt', 'hi\n', { flag: 'a' })
+//   span.end()
+//   return { ok: true }
+// })
   fastify.get("/health/server", async () => ({ status: "ok" }));
     
 
@@ -86,3 +121,7 @@ return fastify
 }
 
 export default buildApp
+
+function initOpenTelemetry() {
+  throw new Error("Function not implemented.");
+}
