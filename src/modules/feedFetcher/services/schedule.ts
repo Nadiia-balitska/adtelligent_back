@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import type { FastifyInstance } from 'fastify';
-import { getFeedsConfig } from './feeds.config';
+import { getFeedsConfig } from '../configs/feeds.config';
 import { refreshFeeds } from './fetchFeeds';
 
 export function registerFeedsCron(app: FastifyInstance) {

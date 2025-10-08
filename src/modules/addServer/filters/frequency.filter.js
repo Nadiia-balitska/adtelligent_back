@@ -1,10 +1,12 @@
-export async function frequencyFilter(items, ctx) {
-  const { fastify, userId } = ctx;
-  if (!items.length) return items;
+export async function frequencyFilter(lineItems, context) {
+  const { fastify, userId } = context;
+  if (!lineItems.length) return lineItems;
 
   const counters = await fastify.prisma.impressionCounter.findMany({
-    where: { userId, lineItemId: { in: items.map(i => i.id) } },
+    where: { userId, lineItemId: { in: lineItems.map(item => item.id) } },
   });
-  const seen = new Map(counters.map(c => [c.lineItemId, c.count]));
-  return items.filter(i => (seen.get(i.id) ?? 0) < i.frequencyCap);
+
+  const seen = new Map(counters.map(counter => [counter.lineItemId, counter.count]));
+
+  return lineItems.filter(lineItem => (seen.get(lineItem.id) ?? 0) < lineItem.frequencyCap);
 }

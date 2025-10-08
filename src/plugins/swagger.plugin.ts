@@ -6,8 +6,8 @@ export default fp(async (fastify) => {
   await fastify.register(swagger, {
     openapi: {
       info: {
-        title: "Feed API",
-        description: "Документація для API фідів 📡",
+        title: "My APIs",
+        description: "Документація для API мого проекту",
         version: "1.0.0",
       },
       servers: [

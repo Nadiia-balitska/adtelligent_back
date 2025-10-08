@@ -1,4 +1,5 @@
-export function sizeFilter(items, { size }) {
-  if (!size) return items;
-  return items.filter(i => i.size === String(size));
+export function sizeFilter(lineItems, { size }) {
+  if (!size) return lineItems;
+
+  return lineItems.filter(lineItem => lineItem.size === String(size));
 }

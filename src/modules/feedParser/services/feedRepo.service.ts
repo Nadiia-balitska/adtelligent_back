@@ -10,7 +10,7 @@ export function createFeedRepo(prisma: PrismaClient) {
   }
 
  async function upsert(feed: ParsedFeed): Promise<void> {
-  const limitedItems = (feed.items ?? []).slice(-20);
+  const limitedItems = (feed.items ?? []).slice(-10);
 
   const data: {
     url: string;
@@ -24,22 +24,37 @@ export function createFeedRepo(prisma: PrismaClient) {
     fetchedAt: feed.fetchedAt ? new Date(feed.fetchedAt) : new Date(),
   };
 
-  await prisma.$runCommandRaw({
-    update: "Feed",
-    updates: [
-      {
-        q: { url: data.url },
-        u: {
-          $set: {
-            title: data.title,
-            items: data.items,
-            fetchedAt: data.fetchedAt,
-          },
-          $setOnInsert: { url: data.url },
-        },
-        upsert: true,
-      },
-    ],
+  // await prisma.$runCommandRaw({
+  //   update: "Feed",
+  //   updates: [
+  //     {
+  //       q: { url: data.url },
+  //       u: {
+  //         $set: {
+  //           title: data.title,
+  //           items: data.items,
+  //           fetchedAt: data.fetchedAt,
+  //         },
+  //         $setOnInsert: { url: data.url },
+  //       },
+  //       upsert: true,
+  //     },
+  //   ],
+  // });
+
+  await prisma.feed.upsert({
+    where: { url: feed.url },
+    update: {
+      title: feed.title ?? null,
+      items: limitedItems as unknown as Prisma.InputJsonValue,
+      fetchedAt: feed.fetchedAt ? new Date(feed.fetchedAt) : new Date(),
+    },
+    create: {
+      url: feed.url,
+      title: feed.title ?? null,
+      items: limitedItems as unknown as Prisma.InputJsonValue,
+      fetchedAt: feed.fetchedAt ? new Date(feed.fetchedAt) : new Date(),
+    },
   });
 }
 

@@ -5,7 +5,7 @@ import configPlugin from "./config";
 import { trace, metrics } from '@opentelemetry/api'
 import fs from 'fs/promises'
 import fastifyMultipart from "@fastify/multipart";
-import otelConsolePlugin from '../otel/plugins/otel-console.plugin';
+import otelConsolePlugin from "./otel/plugins/otel-console.plugin";
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -24,15 +24,23 @@ const fastify = Fastify({logger: isProd
             options: { colorize: true, singleLine: true, translateTime: "HH:MM:ss" },
           },
         },
-    trustProxy: true})
-
+    trustProxy: true,
+   ajv: {
+    customOptions: {
+      coerceTypes: true,
+      useDefaults: true,
+      removeAdditional: true
+    }
+  }})
 
 fastify.register(fastifyMultipart);
+
 
 
    
 await  fastify.register(configPlugin)
 await fastify.register(otelConsolePlugin)
+
 
 
     try {

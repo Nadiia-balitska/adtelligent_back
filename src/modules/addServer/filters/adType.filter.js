@@ -1,4 +1,7 @@
-export function adTypeFilter(items, adType) {
-  if (!adType) return items;
-  return items.filter(i => i.adType.toUpperCase() === adType.toUpperCase());
+export function adTypeFilter(lineItems, { adType }) {
+  if (!adType) return lineItems;
+
+  const normalizedAdType = String(adType).toUpperCase();
+
+  return lineItems.filter(lineItem => String(lineItem.adType).toUpperCase() === normalizedAdType);
 }
