@@ -21,10 +21,15 @@ export async function getAd(fastify, userId, filters = {}) {
     update: { count: { increment: 1 } },
     create: { userId, lineItemId: winner.id, count: 1 },
   });
-
+const isImage = /\.(png|jpe?g|gif|webp)$/i.test(winner.creativePath);
   const [w, h] = winner.size.split("x").map(Number);
 
-  const adm = `<iframe src="${winner.creativePath}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
+
+const creativeUrl = `https://adtelligentback-production.up.railway.app${winner.creativePath}`;
+  
+const adm = isImage
+  ? `<img src="${creativeUrl}" width="${w}" height="${h}" style="display:block;border:0;max-width:100%;height:auto"/>`
+  : `<iframe src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
 
   return {
     id: winner.id,                         
@@ -33,7 +38,7 @@ export async function getAd(fastify, userId, filters = {}) {
     w,                                    
     h,                                     
     price: winner.minCPM,                 
-    adomain: ["adtelligent.com"],            
+    adomain: ["AdTech"],            
     adType: winner.adType,                 
     geo: winner.geo,                      
   };

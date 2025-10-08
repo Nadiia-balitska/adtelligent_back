@@ -133,74 +133,96 @@ const analyticsRoute: FastifyPluginAsync = async (fastify) => {
 
   fastify.addHook("onClose", async () => { await flushToClickHouse(fastify); });
 
-  fastify.get<{
-    Querystring: ReportQuery;
-    Reply: { page: number; page_size: number; total: number; rows: Record<string, unknown>[] };
-  }>(
-    "/stat/report",
-    { schema: { querystring: ReportQuerySchema } },
-    async (req, reply) => {
-      const url = new URL(req.url, "http://x");
-      const p = url.searchParams;
+fastify.get<{
+  Querystring: ReportQuery;
+  Reply: { page: number; page_size: number; total: number; rows: Record<string, unknown>[] };
+}>(
+  "/stat/report",
+  { schema: { querystring: ReportQuerySchema } },
+  async (req, reply) => {
+    const url = new URL(req.url, "http://x");
+    const p = url.searchParams;
 
-      const dimensions = (p.get("dimensions") ?? "date").split(",").filter(Boolean);
-      if (!dimensions.includes("date")) dimensions.unshift("date");
+    const DIM_ALLOW = new Set(["date", "hour", "event", "bidder", "creativeId", "adUnitCode", "geo"]);
+    const FIELD_ALLOW = new Set(["unique_users", "auctions", "bids", "wins", "win_rate", "avg_cpm"]);
 
-      const fields = (p.get("fields") ?? "unique_users,auctions,bids,wins,win_rate,avg_cpm")
-        .split(",").filter(Boolean);
+    const rawDims = (p.get("dimensions") ?? "date")
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
 
-      const page = Math.max(1, parseInt(p.get("page") ?? "1", 10));
-      const pageSize = Math.min(500, Math.max(10, parseInt(p.get("page_size") ?? "100", 10)));
-      const offset = (page - 1) * pageSize;
+    const dimensions = rawDims.filter(d => DIM_ALLOW.has(d));
+    if (!dimensions.includes("date")) dimensions.unshift("date"); // мінімум — date
 
-      const { whereSql, args } = buildWhere(p);
+    const rawFields = (p.get("fields") ?? "unique_users,auctions,bids,wins,win_rate,avg_cpm")
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
 
-      const selectDims = dimensions.map(d => (d === "hour" ? "toString(hour) AS hour" : d)).join(", ");
-      const selectAggs = `
-        uniqExact(userId) AS unique_users,
-        sum(event = 'auctionInit') AS auctions,
-        sum(event = 'bidResponse') AS bids,
-        sum(event = 'bidWon') AS wins,
-        if(sum(event='auctionInit')=0, 0, round(sum(event='bidWon')/sum(event='auctionInit')*100, 2)) AS win_rate,
-        if(countIf(event='bidWon')=0, 0, round(avgIf(cpm, event='bidWon'), 3)) AS avg_cpm
-      `;
-      const groupBySql = dimensions.map(d => (d === "hour" ? "hour" : d)).join(", ");
-      const orderBySql = groupBySql;
+    const fields = rawFields.filter(f => FIELD_ALLOW.has(f));
+    if (fields.length === 0) fields.push("unique_users", "auctions", "bids", "wins", "win_rate", "avg_cpm");
 
-      const qData = `
-        SELECT ${selectDims}, ${selectAggs}
+    const page = Math.max(1, parseInt(p.get("page") ?? "1", 10));
+    const pageSize = Math.min(500, Math.max(10, parseInt(p.get("page_size") ?? "100", 10)));
+    const offset = (page - 1) * pageSize;
+
+    const { whereSql, args } = buildWhere(p);
+
+    const selectDims = dimensions
+      .map(d => (d === "hour" ? "toString(hour) AS hour" : d))
+      .join(", ");
+
+    const selectAggs = `
+      uniqExact(userId) AS unique_users,
+      sum(event = 'auctionInit') AS auctions,
+      sum(event = 'bidResponse') AS bids,
+      sum(event = 'bidWon') AS wins,
+      if(sum(event='auctionInit')=0, 0, round(sum(event='bidWon')/sum(event='auctionInit')*100, 2)) AS win_rate,
+      if(countIf(event='bidWon')=0, 0, round(avgIf(cpm, event='bidWon'), 3)) AS avg_cpm
+    `;
+
+    const groupBySql = dimensions.map(d => (d === "hour" ? "hour" : d)).join(", ");
+    const orderBySql = groupBySql;
+
+    const qData = `
+      SELECT ${selectDims}, ${selectAggs}
+      FROM ${DB}.${TABLE}
+      ${whereSql}
+      GROUP BY ${groupBySql}
+      ORDER BY ${orderBySql}
+      LIMIT ${pageSize} OFFSET ${offset}
+    `;
+
+    const qCount = `
+      SELECT count() AS total
+      FROM (
+        SELECT 1
         FROM ${DB}.${TABLE}
         ${whereSql}
         GROUP BY ${groupBySql}
-        ORDER BY ${orderBySql}
-        LIMIT ${pageSize} OFFSET ${offset}
-      `;
-      const qCount = `
-        SELECT count() AS total
-        FROM (
-          SELECT 1 FROM ${DB}.${TABLE}
-          ${whereSql}
-          GROUP BY ${groupBySql}
-        )
-      `;
+      )
+    `;
 
-      const ch = requireClickhouse(fastify);
-      const [rows, totalRes] = await Promise.all([
-        ch.query({ query: qData, format: "JSONEachRow", query_params: args }).then(r => r.json() as Promise<Array<Record<string, unknown>>>),
-        ch.query({ query: qCount, format: "JSONEachRow", query_params: args }).then(r => r.json() as Promise<Array<Record<string, unknown>>>),
-      ]);
+    const ch = requireClickhouse(fastify);
+    const [rows, totalRes] = await Promise.all([
+      ch.query({ query: qData, format: "JSONEachRow", query_params: args })
+        .then(r => r.json() as Promise<Array<Record<string, unknown>>>),
+      ch.query({ query: qCount, format: "JSONEachRow", query_params: args })
+        .then(r => r.json() as Promise<Array<Record<string, unknown>>>),
+    ]);
 
-      const total = Number(totalRes?.[0]?.total ?? 0);
-      const allowed = new Set<string>([...dimensions, ...fields]);
-      const shaped = rows.map(r => {
-        const out: Record<string, unknown> = {};
-        for (const k of Object.keys(r)) if (allowed.has(k)) out[k] = r[k];
-        return out;
-      });
+    const total = Number(totalRes?.[0]?.total ?? 0);
 
-      return reply.send({ page, page_size: pageSize, total, rows: shaped });
-    }
-  );
+    const allowedKeys = new Set<string>([...dimensions, ...fields]);
+    const shaped = rows.map(r => {
+      const out: Record<string, unknown> = {};
+      for (const k of Object.keys(r)) if (allowedKeys.has(k)) out[k] = r[k];
+      return out;
+    });
+
+    return reply.send({ page, page_size: pageSize, total, rows: shaped });
+  }
+);
 
   fastify.get<{ Querystring: ReportQuery }>(
     "/stat/export.csv",

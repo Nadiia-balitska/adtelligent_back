@@ -2,14 +2,12 @@ import multipart from "@fastify/multipart";
 import { mkdir, stat, unlink } from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { join, extname } from "node:path";
+import { pipeline } from "node:stream/promises";
 import { createLineItem, listLineItems } from "../modules/addServer/services/lineItem.service.js";
 
 async function lineItemRoute(fastify) {
   await fastify.register(multipart, {
-    limits: {
-      fileSize: 10 * 1024 * 1024, 
-      files: 1,
-    },
+    limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   });
 
   fastify.get("/line-items", async (_req, reply) => {
@@ -18,7 +16,7 @@ async function lineItemRoute(fastify) {
   });
 
   fastify.post("/line-items", async (request, reply) => {
-    const file = await request.file(); 
+    const file = await request.file();
     if (!file) {
       return reply.code(400).send({ message: "Поле файлу 'creative' обов'язкове" });
     }
@@ -39,26 +37,20 @@ async function lineItemRoute(fastify) {
     if (minCPM > maxCPM) {
       return reply.code(400).send({ message: "minCPM не може бути більшим за maxCPM" });
     }
-    if (Number.isNaN(frequencyCap) || frequencyCap < 1) {
+    if (!Number.isInteger(frequencyCap) || frequencyCap < 1) {
       return reply.code(400).send({ message: "frequencyCap має бути цілим числом ≥ 1" });
     }
 
-    const allowedExt = new Set([".jpg", ".jpeg", ".png", ".gif", ".html", ".htm"]);
     const ext = extname(file.filename || "").toLowerCase();
-    const allowedMime = new Set([
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "text/html",
-      "application/xhtml+xml",
-    ]);
+    const allowedExt = new Set([".jpg", ".jpeg", ".png", ".gif", ".html", ".htm"]);
+    const allowedMime = new Set(["image/jpeg", "image/png", "image/gif", "text/html", "application/xhtml+xml"]);
     if (!allowedExt.has(ext) || !allowedMime.has(file.mimetype)) {
       return reply.code(400).send({ message: "Непідтримуваний тип файлу" });
     }
 
-    // збереження файлу
     const dir = join(process.cwd(), "public", "creatives");
     try { await stat(dir); } catch { await mkdir(dir, { recursive: true }); }
+
     const safeName = String(file.filename || "creative")
       .replace(/\s+/g, "_")
       .replace(/[^\w.\-]/g, "");
@@ -66,14 +58,15 @@ async function lineItemRoute(fastify) {
     const filepath = join(dir, filename);
 
     try {
-      await new Promise((resolve, reject) => {
-        file.file
-          .pipe(createWriteStream(filepath))
-          .on("finish", resolve)
-          .on("error", reject);
-      });
+      await pipeline(file.file, createWriteStream(filepath));
 
-      //  Збереження в БД
+      const st = await stat(filepath);
+      if (!st.size) {
+        await unlink(filepath).catch(() => {});
+        return reply.code(400).send({ message: "Файл порожній або пошкоджений" });
+      }
+
+      // Збереження запису в БД
       const created = await createLineItem(fastify, {
         size,
         minCPM,
@@ -86,7 +79,7 @@ async function lineItemRoute(fastify) {
 
       return reply.code(201).send(created);
     } catch (e) {
-      try { await unlink(filepath); } catch {}
+      await unlink(filepath).catch(() => {});
       request.log.error(e, "Create line item failed");
       return reply.code(500).send({ message: "Внутрішня помилка під час створення line item" });
     }
