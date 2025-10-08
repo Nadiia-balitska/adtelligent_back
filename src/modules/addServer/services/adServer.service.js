@@ -21,7 +21,7 @@ export async function getAd(fastify, userId, filters = {}) {
     update: { count: { increment: 1 } },
     create: { userId, lineItemId: winner.id, count: 1 },
   });
-const isImage = /\.(png|jpe?g|gif|webp)$/i.test(creativePath);
+const isImage = /\.(png|jpe?g|gif|webp)$/i.test(winner.creativePath);
   const [w, h] = winner.size.split("x").map(Number);
 
 
@@ -38,7 +38,7 @@ const adm = isImage
     w,                                    
     h,                                     
     price: winner.minCPM,                 
-    adomain: ["adtelligent.com"],            
+    adomain: ["AdTech"],            
     adType: winner.adType,                 
     geo: winner.geo,                      
   };
