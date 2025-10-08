@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { ClickHouseQueryArgs, ReportQuery, FastifyClickhouse } from "../types/analytics";
+import type { ClickHouseQueryArgs, FastifyClickhouse } from "../types/analytics";
 
 type WithCH = FastifyInstance & { clickhouse?: FastifyClickhouse | null };
 
@@ -15,6 +15,10 @@ function requireClickhouse(app: FastifyInstance): FastifyClickhouse {
 
 const DB = process.env.CLICKHOUSE_DB as string;
 const TABLE = process.env.CLICKHOUSE_TABLE as string;
+
+function getFullTableName(): string {
+  return TABLE.includes(".") ? TABLE : `${DB}.${TABLE}`;
+}
 
 export function buildWhere(params: URLSearchParams): { whereSql: string; args: ClickHouseQueryArgs } {
   const args: ClickHouseQueryArgs = {};
@@ -58,7 +62,7 @@ function aggsSql(): string {
 export async function getRecent(app: FastifyInstance) {
   const ch = requireClickhouse(app);
   const rs = await ch.query({
-    query: `SELECT * FROM ${DB}.${TABLE} ORDER BY ts DESC LIMIT 100`,
+    query: `SELECT * FROM ${getFullTableName()} ORDER BY ts DESC LIMIT 100`,
     format: "JSONEachRow",
   });
   return rs.json();
@@ -88,7 +92,7 @@ export async function getReport(
 
   const qData = `
     SELECT ${selectDims}, ${aggsSql()}
-    FROM ${DB}.${TABLE}
+    FROM ${getFullTableName()}
     ${whereSql}
     GROUP BY ${groupBySql}
     ORDER BY ${orderBySql}
@@ -97,7 +101,7 @@ export async function getReport(
   const qCount = `
     SELECT count() AS total
     FROM (
-      SELECT 1 FROM ${DB}.${TABLE}
+      SELECT 1 FROM ${getFullTableName()}
       ${whereSql}
       GROUP BY ${groupBySql}
     )
@@ -133,7 +137,7 @@ export async function getCsv(app: FastifyInstance, url: URL): Promise<string> {
   const q = `
     SELECT ${selectDims},
            ${aggsSql()}
-    FROM ${DB}.${TABLE}
+    FROM ${getFullTableName()}
     ${whereSql}
     GROUP BY ${groupBySql}
     ORDER BY ${orderBySql}
@@ -160,7 +164,7 @@ export async function getRowsForXlsx(app: FastifyInstance, url: URL): Promise<Re
   const q = `
     SELECT ${selectDims},
            ${aggsSql()}
-    FROM ${DB}.${TABLE}
+    FROM ${getFullTableName()}
     ${whereSql}
     GROUP BY ${groupBySql}
     ORDER BY ${orderBySql}
