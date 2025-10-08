@@ -31,7 +31,7 @@ const publicOrigin =
 const creativeUrl = `https://adtelligentback-production.up.railway.app${winner.creativePath}`;
   
 
-const adm = `<iframe src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
+const adm = `<iframe id="div-gpt-bottom" src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
 
   return {
     id: winner.id,                         
