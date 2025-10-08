@@ -111,8 +111,12 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
   "include": ["src", "src/types/**/*.d.ts"],
+=======
+  "include": ["src"],
+>>>>>>> Stashed changes
 =======
   "include": ["src"],
 >>>>>>> Stashed changes

@@ -5,7 +5,10 @@ import configPlugin from "./config";
 import fs from 'fs/promises'
 import fastifyMultipart from "@fastify/multipart";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import otelConsolePlugin from "./otel/plugins/otel-console.plugin";
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 
@@ -40,6 +43,7 @@ fastify.register(fastifyMultipart);
 // await fastify.register(otelConsolePlugin)
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 =======
 const sdk= initOpenTelemetry()
@@ -47,6 +51,11 @@ const sdk= initOpenTelemetry()
    
 await  fastify.register(configPlugin)
 
+=======
+const sdk= initOpenTelemetry()
+   
+await  fastify.register(configPlugin)
+>>>>>>> Stashed changes
 
 
     try {
