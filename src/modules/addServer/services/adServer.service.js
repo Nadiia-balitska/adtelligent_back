@@ -21,17 +21,15 @@ export async function getAd(fastify, userId, filters = {}) {
     update: { count: { increment: 1 } },
     create: { userId, lineItemId: winner.id, count: 1 },
   });
-
+const isImage = /\.(png|jpe?g|gif|webp)$/i.test(creativePath);
   const [w, h] = winner.size.split("x").map(Number);
-const publicOrigin =
-  fastify.config?.VITE_BACKEND ||
-  process.env.VITE_BACKEND ||
-  ""; 
+
 
 const creativeUrl = `https://adtelligentback-production.up.railway.app${winner.creativePath}`;
   
-
-const adm = `<iframe  src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
+const adm = isImage
+  ? `<img src="${creativeUrl}" width="${w}" height="${h}" style="display:block;border:0;max-width:100%;height:auto"/>`
+  : `<iframe src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
 
   return {
     id: winner.id,                         
