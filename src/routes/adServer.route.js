@@ -26,6 +26,7 @@ async function adServerRoute(fastify) {
     } = request.body || {};
 
    const ad = await getAd(fastify, userId, {
+    adId: adId ? String(nanoid) : undefined,
       geo: geo ? String(geo) : undefined,
       size: size ? String(size) : undefined,
       adType: adType ? String(adType) : undefined,
