@@ -2,10 +2,12 @@ import Fastify, {FastifyServerOptions} from "fastify";
 import {join} from "node:path";
 import AutoLoad from "@fastify/autoload";
 import configPlugin from "./config";
-import { trace, metrics } from '@opentelemetry/api'
 import fs from 'fs/promises'
 import fastifyMultipart from "@fastify/multipart";
+<<<<<<< Updated upstream
 import otelConsolePlugin from "./otel/plugins/otel-console.plugin";
+=======
+>>>>>>> Stashed changes
 
 export type AppOptions = Partial<FastifyServerOptions>
 
@@ -35,11 +37,15 @@ const fastify = Fastify({logger: isProd
 
 fastify.register(fastifyMultipart);
 
+// await fastify.register(otelConsolePlugin)
 
+<<<<<<< Updated upstream
 
+=======
+const sdk= initOpenTelemetry()
+>>>>>>> Stashed changes
    
 await  fastify.register(configPlugin)
-await fastify.register(otelConsolePlugin)
 
 
 
@@ -70,16 +76,16 @@ await fastify.register(otelConsolePlugin)
     ignorePattern: /^((?!route).)*$/ 
   });
  
-fastify.get('/otel/test', async () => {
-  const tracer = trace.getTracer('demo')
-  const span = tracer.startSpan('manual-span')
-  const meter = metrics.getMeter('demo')
-  const c = meter.createCounter('test_counter')
-  c.add(1, { route: '/otel/test' })
-  await fs.writeFile('./otel-demo.txt', 'hi\n', { flag: 'a' })
-  span.end()
-  return { ok: true }
-})
+// fastify.get('/otel/test', async () => {
+//   const tracer = trace.getTracer('demo')
+//   const span = tracer.startSpan('manual-span')
+//   const meter = metrics.getMeter('demo')
+//   const c = meter.createCounter('test_counter')
+//   c.add(1, { route: '/otel/test' })
+//   await fs.writeFile('./otel-demo.txt', 'hi\n', { flag: 'a' })
+//   span.end()
+//   return { ok: true }
+// })
   fastify.get("/health/server", async () => ({ status: "ok" }));
     
 
