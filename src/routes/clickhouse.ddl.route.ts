@@ -27,7 +27,6 @@ SETTINGS index_granularity = 8192;
 const route: FastifyPluginAsync = async (fastify) => {
   fastify.post("/health/ch/init", async () => {
     const ch = fastify.clickhouse;
-    // Виконуємо два запити послідовно — деякі інстанси не люблять multi-statement
     await ch.query({ query: `CREATE DATABASE IF NOT EXISTS "analytics"` });
     await ch.query({ query: ddl.split("CREATE DATABASE IF NOT EXISTS \"analytics\";").pop()! });
     return { ok: true };
