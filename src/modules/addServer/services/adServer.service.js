@@ -28,10 +28,8 @@ const publicOrigin =
   process.env.VITE_BACKEND ||
   ""; 
 
-const creativePath = String(winner.creativePath || "").trim();
-const creativeUrl = publicOrigin
-  ? `${publicOrigin}${creativePath.startsWith("/") ? "" : "/"}${creativePath}`
-  : creativePath;
+const creativeUrl = `https://adtelligentback-production.up.railway.app${winner.creativePath}`;
+  
 
 const adm = `<iframe src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
 
