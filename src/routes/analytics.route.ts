@@ -12,6 +12,7 @@ import {
   StatEventsBodySchema,
   ReportQuerySchema,
 } from "../modules/analytics/schemas/analytics.schema";
+const FQTN = `\`${DB}\`.\`${TABLE}\``; // fully-qualified table name with backticks
 
 
 type BufferedEvent =

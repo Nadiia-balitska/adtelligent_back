@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
 
 const ddl = `
-CREATE DATABASE IF NOT EXISTS "nadia-analytics";
+CREATE DATABASE IF NOT EXISTS "analytics";
 
-CREATE TABLE IF NOT EXISTS "nadia-analytics".stat_event (
+CREATE TABLE IF NOT EXISTS "analytics".stat_event (
   ts         DateTime           DEFAULT now(),
   date       Date               MATERIALIZED toDate(ts),
   hour       UInt8              MATERIALIZED toHour(ts),
@@ -28,8 +28,8 @@ const route: FastifyPluginAsync = async (fastify) => {
   fastify.post("/health/ch/init", async () => {
     const ch = fastify.clickhouse;
     // Виконуємо два запити послідовно — деякі інстанси не люблять multi-statement
-    await ch.query({ query: `CREATE DATABASE IF NOT EXISTS "nadia-analytics"` });
-    await ch.query({ query: ddl.split("CREATE DATABASE IF NOT EXISTS \"nadia-analytics\";").pop()! });
+    await ch.query({ query: `CREATE DATABASE IF NOT EXISTS "analytics"` });
+    await ch.query({ query: ddl.split("CREATE DATABASE IF NOT EXISTS \"analytics\";").pop()! });
     return { ok: true };
   });
 
@@ -37,7 +37,7 @@ const route: FastifyPluginAsync = async (fastify) => {
     const ch = fastify.clickhouse;
     const rs = await ch.query({
       query: `SELECT database, name FROM system.tables WHERE database = {db:String}`,
-      query_params: { db: "nadia-analytics" },
+      query_params: { db: "analytics" },
       format: "JSONEachRow",
     });
     return rs.json();
