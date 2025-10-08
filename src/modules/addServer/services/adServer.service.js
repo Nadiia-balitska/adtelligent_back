@@ -23,8 +23,17 @@ export async function getAd(fastify, userId, filters = {}) {
   });
 
   const [w, h] = winner.size.split("x").map(Number);
+const publicOrigin =
+  fastify.config?.VITE_BACKEND ||
+  process.env.VITE_BACKEND ||
+  ""; 
 
-  const adm = `<iframe src="${winner.creativePath}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
+const creativePath = String(winner.creativePath || "").trim();
+const creativeUrl = publicOrigin
+  ? `${publicOrigin}${creativePath.startsWith("/") ? "" : "/"}${creativePath}`
+  : creativePath;
+
+const adm = `<iframe src="${creativeUrl}" width="${w}" height="${h}" frameborder="0" scrolling="no"></iframe>`;
 
   return {
     id: winner.id,                         
